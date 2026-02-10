@@ -1,0 +1,150 @@
+.showcase {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.header {
+  margin-bottom: 48px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 12px 0;
+}
+
+.description {
+  font-size: 16px;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.variants {
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+}
+
+.variant {
+  padding: 32px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  transition: box-shadow 0.2s;
+}
+
+.variant:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.variantHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.variantName {
+  font-size: 20px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.variantUsage {
+  font-size: 12px;
+  padding: 4px 12px;
+  background: #f3f4f6;
+  color: #6b7280;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+.variantDescription {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0 0 24px 0;
+  line-height: 1.6;
+}
+
+.preview {
+  margin-bottom: 24px;
+}
+
+.previewLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 12px;
+}
+
+.previewContent {
+  padding: 32px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.codeBlock {
+  margin-top: 24px;
+}
+
+.codeHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: #1f2937;
+  border-radius: 8px 8px 0 0;
+}
+
+.codeLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.copyButton {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #ffffff;
+  background: #374151;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.copyButton:hover {
+  background: #4b5563;
+}
+
+.code {
+  margin: 0;
+  padding: 16px;
+  background: #111827;
+  border-radius: 0 0 8px 8px;
+  overflow-x: auto;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #e5e7eb;
+}
+
+.code code {
+  color: #e5e7eb;
+}
