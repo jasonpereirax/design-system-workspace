@@ -5,11 +5,17 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:server": "node server/seed.js && node server/index.js",
+    "server": "node server/index.js",
+    "seed": "node server/seed.js",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
   },
   "dependencies": {
+    "@fastify/cors": "^9.0.1",
+    "better-sqlite3": "^11.6.0",
+    "fastify": "^4.28.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

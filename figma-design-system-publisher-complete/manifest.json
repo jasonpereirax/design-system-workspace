@@ -1,0 +1,17 @@
+{
+  "name": "Design System Publisher Pro",
+  "id": "design-system-publisher-pro",
+  "api": "1.0.0",
+  "main": "code.js",
+  "ui": "ui.html",
+  "editorType": ["figma"],
+  "networkAccess": {
+    "allowedDomains": [
+      "https://api.anthropic.com",
+      "https://api.github.com",
+      "https://api.figma.com",
+      "https://api.vercel.com"
+    ],
+    "devAllowedDomains": ["*"]
+  }
+}

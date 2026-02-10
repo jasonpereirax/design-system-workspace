@@ -16,6 +16,14 @@ npm install
 npm run dev
 ```
 
+### Backend (MVP)
+
+```bash
+npm run dev:server
+```
+
+See `MVP_GUIDE.md` for full local workflow and plugin integration.
+
 ### Build
 
 ```bash

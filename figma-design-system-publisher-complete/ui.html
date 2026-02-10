@@ -1,0 +1,2138 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Design System Publisher Pro</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --primary-light: #818cf8;
+      --secondary: #8b5cf6;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --background: #ffffff;
+      --surface: #f9fafb;
+      --border: #e5e7eb;
+      --text: #111827;
+      --text-secondary: #6b7280;
+      --text-muted: #9ca3af;
+      --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      color: var(--text);
+      background: var(--background);
+      overflow: hidden;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    .header {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+      color: white;
+      padding: 20px 24px;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .header p {
+      font-size: 13px;
+      opacity: 0.9;
+    }
+
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+    }
+
+    .steps {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 24px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .step {
+      flex: 1;
+      text-align: center;
+      position: relative;
+    }
+
+    .step-number {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 8px;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.3s;
+    }
+
+    .step.active .step-number {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: white;
+      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+    }
+
+    .step.completed .step-number {
+      background: var(--success);
+      border-color: var(--success);
+      color: white;
+    }
+
+    .step-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+
+    .step.active .step-label {
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    /* Workflow Progress Panel */
+    .workflow-panel {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.3s;
+    }
+
+    .workflow-panel.active {
+      display: flex;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .workflow-content {
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      min-width: 500px;
+      max-width: 600px;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow-xl);
+      animation: slideUp 0.4s;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .workflow-header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .workflow-header h2 {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+
+    .workflow-header p {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .workflow-steps {
+      margin-bottom: 32px;
+    }
+
+    .workflow-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 16px;
+      margin-bottom: 12px;
+      border-radius: 12px;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      transition: all 0.3s;
+    }
+
+    .workflow-step.running {
+      border-color: var(--primary);
+      background: rgba(99, 102, 241, 0.05);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .workflow-step.success {
+      border-color: var(--success);
+      background: rgba(16, 185, 129, 0.05);
+    }
+
+    .workflow-step.error {
+      border-color: var(--danger);
+      background: rgba(239, 68, 68, 0.05);
+    }
+
+    .step-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+      background: white;
+      border: 2px solid var(--border);
+    }
+
+    .workflow-step.pending .step-icon {
+      background: var(--surface);
+      color: var(--text-muted);
+    }
+
+    .workflow-step.running .step-icon {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: white;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7);
+      }
+      50% {
+        box-shadow: 0 0 0 10px rgba(99, 102, 241, 0);
+      }
+    }
+
+    .workflow-step.success .step-icon {
+      background: var(--success);
+      border-color: var(--success);
+      color: white;
+    }
+
+    .workflow-step.error .step-icon {
+      background: var(--danger);
+      border-color: var(--danger);
+      color: white;
+    }
+
+    .step-info {
+      flex: 1;
+    }
+
+    .step-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: var(--text);
+    }
+
+    .step-message {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .workflow-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    .workflow-btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .workflow-btn-pause {
+      background: var(--warning);
+      color: white;
+    }
+
+    .workflow-btn-resume {
+      background: var(--success);
+      color: white;
+    }
+
+    .workflow-btn-cancel {
+      background: white;
+      color: var(--text);
+      border: 2px solid var(--border);
+    }
+
+    .workflow-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .workflow-result {
+      display: none;
+      text-align: center;
+      padding: 24px;
+      background: rgba(16, 185, 129, 0.1);
+      border: 2px solid var(--success);
+      border-radius: 12px;
+      margin-top: 24px;
+    }
+
+    .workflow-result.active {
+      display: block;
+    }
+
+    .workflow-result h3 {
+      color: var(--success);
+      font-size: 20px;
+      margin-bottom: 12px;
+    }
+
+    .workflow-result a {
+      display: inline-block;
+      margin-top: 16px;
+      padding: 10px 20px;
+      background: var(--primary);
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .workflow-result a:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+
+    /* Loading overlay */
+    .loading-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      z-index: 999;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .loading-overlay.active {
+      display: flex;
+    }
+
+    .loading-content {
+      background: white;
+      border-radius: 16px;
+      padding: 40px;
+      text-align: center;
+      min-width: 320px;
+      box-shadow: var(--shadow-xl);
+    }
+
+    .loading-spinner {
+      width: 60px;
+      height: 60px;
+      border: 4px solid var(--surface);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 20px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    /* Toolbar */
+    .toolbar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+      align-items: center;
+    }
+
+    .search-box {
+      flex: 1;
+      position: relative;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 10px 12px 10px 40px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    .search-box input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 16px;
+    }
+
+    .toolbar-btn {
+      padding: 10px 16px;
+      border: 2px solid var(--border);
+      background: white;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .toolbar-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: rgba(99, 102, 241, 0.05);
+    }
+
+    /* Stats Bar */
+    .stats-bar {
+      display: none;
+      gap: 12px;
+      margin-bottom: 20px;
+      padding: 12px 16px;
+      background: var(--surface);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    .stats-bar.active {
+      display: flex;
+    }
+
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .stat-value {
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .stat-divider {
+      width: 1px;
+      height: 20px;
+      background: var(--border);
+    }
+
+    /* Component Groups */
+    .component-group {
+      margin-bottom: 20px;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: all 0.2s;
+    }
+
+    .component-group:hover {
+      border-color: var(--primary-light);
+      box-shadow: var(--shadow-md);
+    }
+
+    .group-header {
+      background: var(--surface);
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: all 0.2s;
+      user-select: none;
+    }
+
+    .group-header:hover {
+      background: #e5e7eb;
+    }
+
+    .group-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .group-icon {
+      transition: transform 0.3s;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .group-header.collapsed .group-icon {
+      transform: rotate(-90deg);
+    }
+
+    .group-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .group-count {
+      background: white;
+      padding: 3px 10px;
+      border-radius: 8px;
+      font-size: 11px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .select-all-btn {
+      padding: 4px 10px;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 500;
+    }
+
+    .select-all-btn:hover {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: white;
+    }
+
+    .group-content {
+      padding: 16px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 14px;
+      background: white;
+    }
+
+    .group-content.collapsed {
+      display: none;
+    }
+
+    /* Component Cards */
+    .component-card {
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .component-card:hover {
+      border-color: var(--primary);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    .component-card.selected {
+      border-color: var(--primary);
+      background: rgba(99, 102, 241, 0.08);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .component-card.selected::before {
+      content: '✓';
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 22px;
+      height: 22px;
+      background: var(--primary);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: bold;
+      box-shadow: var(--shadow-md);
+      z-index: 10;
+    }
+
+    .component-thumbnail {
+      width: 100%;
+      height: 90px;
+      background: white;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .component-thumbnail img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+
+    .component-name {
+      font-weight: 600;
+      font-size: 13px;
+      margin-bottom: 4px;
+      line-height: 1.3;
+    }
+
+    .component-description {
+      font-size: 11px;
+      color: var(--text-secondary);
+      line-height: 1.4;
+      margin-bottom: 6px;
+    }
+
+    .variant-indicator {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      color: var(--primary);
+      margin-top: 8px;
+      padding: 6px 8px;
+      background: rgba(99, 102, 241, 0.08);
+      border-radius: 6px;
+      font-weight: 500;
+    }
+
+    .variant-indicator:hover {
+      background: rgba(99, 102, 241, 0.15);
+    }
+
+    /* Variants Container */
+    .variants-container {
+      margin-top: 12px;
+      padding: 12px;
+      background: #f3f4f6;
+      border-radius: 8px;
+      border: 1px dashed var(--border);
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+      gap: 8px;
+    }
+
+    .variant-card {
+      padding: 8px;
+      background: white;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .variant-card:hover {
+      border-color: var(--primary);
+      transform: scale(1.02);
+    }
+
+    .variant-card.selected {
+      border-color: var(--primary);
+      background: rgba(99, 102, 241, 0.08);
+    }
+
+    .variant-card .component-thumbnail {
+      height: 60px;
+      margin-bottom: 6px;
+    }
+
+    .variant-card .component-name {
+      font-size: 11px;
+    }
+
+    /* Code Preview */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 16px;
+      border-bottom: 2px solid var(--border);
+      position: relative;
+    }
+
+    .tab {
+      padding: 10px 20px;
+      cursor: pointer;
+      border: none;
+      background: none;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+      margin-bottom: -2px;
+    }
+
+    .tab:hover {
+      color: var(--primary);
+      background: rgba(99, 102, 241, 0.05);
+    }
+
+    .tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+      font-weight: 600;
+    }
+
+    .code-actions {
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      gap: 8px;
+    }
+
+    .code-action-btn {
+      padding: 6px 12px;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 500;
+    }
+
+    .code-action-btn:hover {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: white;
+    }
+
+    .code-container {
+      background: #1e1e1e;
+      border-radius: 12px;
+      padding: 20px;
+      overflow-x: auto;
+      max-height: 450px;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .code-content {
+      display: none;
+    }
+
+    .code-content.active {
+      display: block;
+    }
+
+    pre {
+      margin: 0;
+      font-family: 'Monaco', 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #d4d4d4;
+    }
+
+    /* GitHub Config */
+    .github-config {
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+      border: 1px solid var(--border);
+    }
+
+    .config-section {
+      margin-bottom: 24px;
+    }
+
+    .config-section h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: var(--text);
+    }
+
+    .input-group {
+      margin-bottom: 16px;
+    }
+
+    .input-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 11px 12px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    .input-group input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .input-hint {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+
+    /* Buttons */
+    .button-group {
+      display: flex;
+      gap: 12px;
+      padding: 20px 24px;
+      background: var(--surface);
+      border-top: 2px solid var(--border);
+    }
+
+    button {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      flex: 1;
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .btn-primary:disabled {
+      background: var(--border);
+      cursor: not-allowed;
+      transform: none;
+      opacity: 0.6;
+    }
+
+    .btn-secondary {
+      background: white;
+      color: var(--text);
+      border: 2px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: rgba(99, 102, 241, 0.05);
+    }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 60px 24px;
+      color: var(--text-secondary);
+    }
+
+    .empty-state svg {
+      width: 80px;
+      height: 80px;
+      margin-bottom: 16px;
+      opacity: 0.3;
+    }
+
+    /* Info Box */
+    .info-box {
+      background: rgba(99, 102, 241, 0.05);
+      border-left: 4px solid var(--primary);
+      padding: 16px;
+      border-radius: 8px;
+      margin-top: 16px;
+    }
+
+    .info-box strong {
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .info-box p {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .info-box a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .info-box a:hover {
+      text-decoration: underline;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--surface);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loading-overlay">
+      <div class="loading-content">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Carregando componentes...</div>
+      </div>
+    </div>
+
+    <!-- Workflow Panel -->
+    <div class="workflow-panel" id="workflow-panel">
+      <div class="workflow-content">
+        <div class="workflow-header">
+          <h2>🚀 Workflow em Andamento</h2>
+          <p>Acompanhe o progresso da publicação</p>
+        </div>
+
+        <div class="workflow-steps" id="workflow-steps">
+          <!-- Steps will be populated dynamically -->
+        </div>
+
+        <div class="workflow-actions" id="workflow-controls">
+          <button class="workflow-btn workflow-btn-pause" id="pause-btn">⏸️ Pausar</button>
+          <button class="workflow-btn workflow-btn-cancel" id="cancel-btn">❌ Cancelar</button>
+        </div>
+
+        <div class="workflow-result" id="workflow-result">
+          <h3>✅ Workflow Concluído!</h3>
+          <p>Seu Design System foi publicado com sucesso.</p>
+          <a href="#" id="pr-link" target="_blank">Ver Pull Request</a>
+          <a href="#" id="vercel-link" target="_blank">Ver no Vercel</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Header -->
+    <div class="header">
+      <h1>🚀 Design System Publisher Pro</h1>
+      <p>Integração completa: Figma → GitHub → Vercel</p>
+    </div>
+
+    <!-- Main Content -->
+    <div class="content">
+      <!-- Steps Indicator -->
+      <div class="steps">
+        <div class="step active" id="step1">
+          <div class="step-number">1</div>
+          <div class="step-label">Selecionar</div>
+        </div>
+        <div class="step" id="step2">
+          <div class="step-number">2</div>
+          <div class="step-label">Configurar</div>
+        </div>
+        <div class="step" id="step3">
+          <div class="step-number">3</div>
+          <div class="step-label">Publicar</div>
+        </div>
+      </div>
+
+      <!-- Step 1: Selection -->
+      <div id="selection-step" class="step-content">
+        <div class="github-config" style="margin-bottom: 20px;">
+          <div class="config-section">
+            <h3>🎯 Escolha a Fonte dos Componentes</h3>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px;">
+              <button class="toolbar-btn" id="load-selection-btn" style="padding: 14px;">
+                📍 Usar Seleção<br><small style="opacity: 0.7; font-size: 11px;">Componentes selecionados</small>
+              </button>
+              <button class="toolbar-btn" id="load-current-page-btn" style="padding: 14px;">
+                📄 Página Atual<br><small style="opacity: 0.7; font-size: 11px;">Apenas esta página</small>
+              </button>
+              <button class="toolbar-btn" id="load-all-btn" style="padding: 14px;">
+                📚 Arquivo Completo<br><small style="opacity: 0.7; font-size: 11px;">Todas as páginas</small>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="search-input" placeholder="Buscar componentes...">
+          </div>
+          <button class="toolbar-btn" id="clear-selection-btn">Limpar seleção</button>
+        </div>
+
+        <div class="stats-bar" id="stats-bar">
+          <div class="stat-item">
+            <span>Selecionados:</span>
+            <span class="stat-value" id="selected-count">0</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <span>Total:</span>
+            <span class="stat-value" id="total-count">0</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <span>Páginas:</span>
+            <span class="stat-value" id="pages-count">0</span>
+          </div>
+        </div>
+
+        <div id="components-container">
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/>
+              <path d="M7 10h2v7H7zm4-3h2v10h-2zm4 6h2v4h-2z"/>
+            </svg>
+            <h3>👆 Escolha uma fonte acima</h3>
+            <p>Selecione de onde você quer carregar os componentes:</p>
+            <ul style="text-align: left; margin: 16px auto; max-width: 350px; line-height: 1.8;">
+              <li><strong>Usar Seleção:</strong> Componentes que você selecionou no Figma</li>
+              <li><strong>Página Atual:</strong> Todos componentes da página aberta</li>
+              <li><strong>Arquivo Completo:</strong> Todos componentes de todas as páginas</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2: Configuration -->
+      <div id="config-step" class="step-content" style="display: none;">
+        <div class="github-config">
+          <div class="config-section">
+            <h3>🔐 Credenciais GitHub</h3>
+            
+            <div class="input-group">
+              <label>GitHub Token</label>
+              <input type="password" id="github-token" placeholder="ghp_xxxxxxxxxxxx">
+              <div class="input-hint">
+                Crie um token em: Settings → Developer settings → Personal access tokens
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label>Repositório (Owner)</label>
+              <input type="text" id="repo-owner" placeholder="seu-usuario">
+              <div class="input-hint">Seu username ou organização</div>
+            </div>
+
+            <div class="input-group">
+              <label>Nome do Repositório</label>
+              <input type="text" id="repo-name" placeholder="design-system">
+              <div class="input-hint">Nome do repositório onde o código será enviado</div>
+            </div>
+          </div>
+
+          <div class="config-section">
+            <h3>🎨 Opcionais</h3>
+            
+            <div class="input-group">
+              <label>Vercel Token (Opcional)</label>
+              <input type="password" id="vercel-token" placeholder="Deixe em branco para configurar manualmente">
+              <div class="input-hint">
+                Token da Vercel para configuração automática de deploy
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label>Claude API Key (Opcional)</label>
+              <input type="password" id="anthropic-key" placeholder="Usar Figma MCP via Chrome">
+              <div class="input-hint">
+                Se vazio, usará o Figma MCP conectado ao Chrome
+              </div>
+            </div>
+          </div>
+
+          <div class="config-section">
+            <h3>🧩 Gauge DS (SaaS Local)</h3>
+
+            <div class="input-group">
+              <label>Backend URL</label>
+              <input type="text" id="gauge-url" placeholder="http://localhost:5174">
+              <div class="input-hint">URL do backend local do Gauge</div>
+            </div>
+
+            <div class="input-group">
+              <label>Email do Usuario</label>
+              <input type="text" id="gauge-email" placeholder="demo@gauge.local">
+              <div class="input-hint">Mesmo email usado no Workspace</div>
+            </div>
+
+            <div class="input-group">
+              <label>Project ID</label>
+              <input type="text" id="gauge-project-id" placeholder="uuid-do-projeto">
+              <div class="input-hint">Copie o ID do projeto no Workspace</div>
+            </div>
+
+            <div class="input-group">
+              <label>Versao (Opcional)</label>
+              <input type="text" id="gauge-version" placeholder="v1.0.0">
+              <div class="input-hint">Se vazio, usa timestamp</div>
+            </div>
+          </div>
+
+          <div class="info-box">
+            <strong>🔥 Como funciona o Workflow Automático</strong>
+            <p>
+              1. Extrai designs do Figma<br>
+              2. Processa com Figma MCP<br>
+              3. Gera código em 3 formatos (HTML, React, Tailwind)<br>
+              4. Cria estrutura de arquivos no repositório<br>
+              5. Faz commit e push automático<br>
+              6. Cria Pull Request no GitHub<br>
+              7. Configura deploy automático na Vercel
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3: Publish -->
+      <div id="publish-step" class="step-content" style="display: none;">
+        <div class="github-config">
+          <h3>📋 Resumo da Publicação</h3>
+          
+          <div style="padding: 20px; background: white; border-radius: 8px; margin: 20px 0;">
+            <p style="margin-bottom: 12px;"><strong>Componentes selecionados:</strong> <span id="summary-count">0</span></p>
+            <p style="margin-bottom: 12px;"><strong>Repositório:</strong> <span id="summary-repo">-</span></p>
+            <p style="margin-bottom: 12px;"><strong>Formatos de código:</strong> HTML/CSS, React, Tailwind</p>
+            <p><strong>Deploy:</strong> Automático via Vercel (após aprovação do PR)</p>
+            <p style="margin-top: 12px;"><strong>Gauge DS:</strong> <span id="summary-gauge">-</span></p>
+          </div>
+
+          <div class="info-box">
+            <strong>⚡ Controle Total do Processo</strong>
+            <p>
+              Durante o workflow, você pode:<br>
+              • Pausar a qualquer momento<br>
+              • Visualizar o progresso de cada etapa<br>
+              • Cancelar se necessário<br>
+              • Ver mensagens detalhadas de cada passo
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer Buttons -->
+    <div class="button-group">
+      <button class="btn-secondary" id="back-btn" style="display: none;">← Voltar</button>
+      <button class="btn-primary" id="next-btn" disabled>Continuar →</button>
+    </div>
+  </div>
+
+  <script>
+    var selectedComponents = [];
+    var currentStep = 1;
+    var allComponents = [];
+    var componentGroups = {};
+    var expandedComponents = {};
+    var workflowSteps = [];
+    var isPaused = false;
+
+    window.onload = function() {
+      console.log('===== UI carregado =====');
+      console.log('Iniciando configuração...');
+      setupEventListeners();
+      loadSavedCredentials();
+      showLoading(false);
+      console.log('===== Configuração completa =====');
+    };
+
+    function loadSavedCredentials() {
+      console.log('Solicitando credenciais salvas...');
+      parent.postMessage({ pluginMessage: { type: 'get-credentials' } }, '*');
+    }
+
+    function saveCredentials() {
+      console.log('Salvando credenciais...');
+      var credentials = {
+        githubToken: document.getElementById('github-token').value,
+        repoOwner: document.getElementById('repo-owner').value,
+        repoName: document.getElementById('repo-name').value,
+        vercelToken: document.getElementById('vercel-token').value,
+        anthropicKey: document.getElementById('anthropic-key').value,
+        gaugeUrl: document.getElementById('gauge-url').value,
+        gaugeEmail: document.getElementById('gauge-email').value,
+        gaugeProjectId: document.getElementById('gauge-project-id').value,
+        gaugeVersion: document.getElementById('gauge-version').value
+      };
+      parent.postMessage({ pluginMessage: { type: 'save-credentials', credentials: credentials } }, '*');
+    }
+
+    function setupEventListeners() {
+      console.log('Configurando event listeners...');
+
+      document.getElementById('next-btn').onclick = function() {
+        if (currentStep === 1) {
+          goToStep(2);
+        } else if (currentStep === 2) {
+          saveCredentials();
+          goToStep(3);
+          updatePublishSummary();
+        } else if (currentStep === 3) {
+          startWorkflow();
+        }
+      };
+
+      document.getElementById('back-btn').onclick = function() {
+        goToStep(currentStep - 1);
+      };
+
+      document.getElementById('search-input').oninput = function(e) {
+        filterComponents(e.target.value);
+      };
+
+      document.getElementById('clear-selection-btn').onclick = function() {
+        clearSelection();
+      };
+
+      var loadSelectionBtn = document.getElementById('load-selection-btn');
+      var loadCurrentPageBtn = document.getElementById('load-current-page-btn');
+      var loadAllBtn = document.getElementById('load-all-btn');
+
+      console.log('Botões encontrados:', {
+        loadSelection: !!loadSelectionBtn,
+        loadCurrentPage: !!loadCurrentPageBtn,
+        loadAll: !!loadAllBtn
+      });
+
+      if (loadSelectionBtn) {
+        loadSelectionBtn.onclick = function() {
+          console.log('Botão "Usar Seleção" clicado!');
+          loadComponents('selection');
+        };
+        console.log('Event listener adicionado ao botão "Usar Seleção"');
+      }
+
+      if (loadCurrentPageBtn) {
+        loadCurrentPageBtn.onclick = function() {
+          console.log('Botão "Página Atual" clicado!');
+          loadComponents('current-page');
+        };
+        console.log('Event listener adicionado ao botão "Página Atual"');
+      }
+
+      if (loadAllBtn) {
+        loadAllBtn.onclick = function() {
+          console.log('Botão "Arquivo Completo" clicado!');
+          loadComponents('all');
+        };
+        console.log('Event listener adicionado ao botão "Arquivo Completo"');
+      }
+
+      document.getElementById('pause-btn').onclick = function() {
+        if (isPaused) {
+          resumeWorkflow();
+        } else {
+          pauseWorkflow();
+        }
+      };
+
+      document.getElementById('cancel-btn').onclick = function() {
+        cancelWorkflow();
+      };
+
+      console.log('Todos os event listeners configurados com sucesso!');
+    }
+
+    function startWorkflow() {
+      document.getElementById('workflow-panel').classList.add('active');
+      
+      parent.postMessage({
+        pluginMessage: {
+          type: 'start-workflow',
+          components: selectedComponents,
+          githubToken: document.getElementById('github-token').value,
+          repoOwner: document.getElementById('repo-owner').value,
+          repoName: document.getElementById('repo-name').value,
+          vercelToken: document.getElementById('vercel-token').value,
+          anthropicApiKey: document.getElementById('anthropic-key').value,
+          gaugeUrl: document.getElementById('gauge-url').value || 'http://localhost:5174',
+          gaugeEmail: document.getElementById('gauge-email').value,
+          gaugeProjectId: document.getElementById('gauge-project-id').value,
+          gaugeVersion: document.getElementById('gauge-version').value
+        }
+      }, '*');
+    }
+
+    function pauseWorkflow() {
+      isPaused = true;
+      parent.postMessage({ pluginMessage: { type: 'pause-workflow' } }, '*');
+      document.getElementById('pause-btn').textContent = '▶️ Continuar';
+      document.getElementById('pause-btn').classList.remove('workflow-btn-pause');
+      document.getElementById('pause-btn').classList.add('workflow-btn-resume');
+    }
+
+    function resumeWorkflow() {
+      isPaused = false;
+      parent.postMessage({ pluginMessage: { type: 'resume-workflow' } }, '*');
+      document.getElementById('pause-btn').textContent = '⏸️ Pausar';
+      document.getElementById('pause-btn').classList.remove('workflow-btn-resume');
+      document.getElementById('pause-btn').classList.add('workflow-btn-pause');
+    }
+
+    function cancelWorkflow() {
+      if (confirm('Tem certeza que deseja cancelar o workflow?')) {
+        parent.postMessage({ pluginMessage: { type: 'cancel-workflow' } }, '*');
+        document.getElementById('workflow-panel').classList.remove('active');
+      }
+    }
+
+    function updatePublishSummary() {
+      document.getElementById('summary-count').textContent = selectedComponents.length;
+      var owner = document.getElementById('repo-owner').value;
+      var repo = document.getElementById('repo-name').value;
+      document.getElementById('summary-repo').textContent = owner + '/' + repo;
+      var gaugeProjectId = document.getElementById('gauge-project-id').value;
+      var gaugeUrl = document.getElementById('gauge-url').value || 'http://localhost:5174';
+      document.getElementById('summary-gauge').textContent = gaugeProjectId
+        ? (gaugeUrl + ' → ' + gaugeProjectId)
+        : 'nao configurado';
+    }
+
+    function filterComponents(searchTerm) {
+      var term = searchTerm.toLowerCase();
+      var groups = document.querySelectorAll('.component-group');
+      
+      for (var i = 0; i < groups.length; i++) {
+        var group = groups[i];
+        var cards = group.querySelectorAll('.component-card');
+        var hasVisible = false;
+        
+        for (var j = 0; j < cards.length; j++) {
+          var card = cards[j];
+          var name = card.querySelector('.component-name').textContent.toLowerCase();
+          var desc = card.querySelector('.component-description').textContent.toLowerCase();
+          
+          if (name.indexOf(term) > -1 || desc.indexOf(term) > -1 || term === '') {
+            card.style.display = '';
+            hasVisible = true;
+          } else {
+            card.style.display = 'none';
+          }
+        }
+        
+        group.style.display = hasVisible ? '' : 'none';
+      }
+    }
+
+    function clearSelection() {
+      selectedComponents = [];
+      var cards = document.querySelectorAll('.component-card');
+      for (var i = 0; i < cards.length; i++) {
+        cards[i].classList.remove('selected');
+      }
+      updateStats();
+      document.getElementById('next-btn').disabled = true;
+    }
+
+    function selectAllInGroup(pageName) {
+      var group = componentGroups[pageName];
+      if (!group) return;
+      
+      for (var i = 0; i < group.length; i++) {
+        var comp = group[i];
+        if (selectedComponents.indexOf(comp.id) === -1) {
+          selectedComponents.push(comp.id);
+          var card = document.getElementById('component-' + comp.id);
+          if (card) card.classList.add('selected');
+        }
+      }
+      
+      updateStats();
+      document.getElementById('next-btn').disabled = selectedComponents.length === 0;
+    }
+
+    function updateStats() {
+      var statsBar = document.getElementById('stats-bar');
+      var selectedCount = document.getElementById('selected-count');
+      var totalCount = document.getElementById('total-count');
+      var pagesCount = document.getElementById('pages-count');
+      
+      selectedCount.textContent = selectedComponents.length;
+      totalCount.textContent = allComponents.length;
+      pagesCount.textContent = Object.keys(componentGroups).length;
+      
+      if (selectedComponents.length > 0) {
+        statsBar.classList.add('active');
+      } else {
+        statsBar.classList.remove('active');
+      }
+    }
+
+    function showLoading(show) {
+      var overlay = document.getElementById('loading-overlay');
+      if (show) {
+        overlay.classList.add('active');
+      } else {
+        overlay.classList.remove('active');
+      }
+    }
+
+    function loadComponents(source) {
+      console.log('===== loadComponents() chamado =====');
+      console.log('Fonte:', source);
+      showLoading(true);
+      var message = {
+        pluginMessage: {
+          type: 'get-components',
+          source: source || 'all'
+        }
+      };
+      console.log('Enviando mensagem para code.js:', message);
+      parent.postMessage(message, '*');
+      console.log('Mensagem enviada com sucesso!');
+    }
+
+    function loadVariants(componentId) {
+      parent.postMessage({ pluginMessage: { type: 'get-variants', componentId: componentId } }, '*');
+    }
+
+    function goToStep(step) {
+      currentStep = step;
+
+      for (var i = 1; i <= 3; i++) {
+        var stepEl = document.getElementById('step' + i);
+        stepEl.classList.remove('active', 'completed');
+        if (i < step) stepEl.classList.add('completed');
+        if (i === step) stepEl.classList.add('active');
+      }
+
+      document.getElementById('selection-step').style.display = step === 1 ? 'block' : 'none';
+      document.getElementById('config-step').style.display = step === 2 ? 'block' : 'none';
+      document.getElementById('publish-step').style.display = step === 3 ? 'block' : 'none';
+
+      document.getElementById('back-btn').style.display = step > 1 ? 'block' : 'none';
+      var nextBtn = document.getElementById('next-btn');
+      
+      if (step === 1) {
+        nextBtn.textContent = 'Continuar →';
+        nextBtn.disabled = selectedComponents.length === 0;
+      } else if (step === 2) {
+        nextBtn.textContent = 'Revisar →';
+        nextBtn.disabled = false;
+      } else if (step === 3) {
+        nextBtn.textContent = '🚀 Iniciar Publicação';
+        nextBtn.disabled = false;
+      }
+    }
+
+    function toggleComponent(id, evt) {
+      evt.stopPropagation();
+      var index = selectedComponents.indexOf(id);
+      if (index > -1) {
+        selectedComponents.splice(index, 1);
+      } else {
+        selectedComponents.push(id);
+      }
+
+      updateStats();
+      if (currentStep === 1) {
+        document.getElementById('next-btn').disabled = selectedComponents.length === 0;
+      }
+    }
+
+    function toggleVariantSelection(componentSetId, variantId, evt) {
+      evt.stopPropagation();
+      
+      var setIndex = selectedComponents.indexOf(componentSetId);
+      if (setIndex > -1) {
+        selectedComponents.splice(setIndex, 1);
+      }
+      
+      var variantIndex = selectedComponents.indexOf(variantId);
+      if (variantIndex > -1) {
+        selectedComponents.splice(variantIndex, 1);
+      } else {
+        selectedComponents.push(variantId);
+      }
+      
+      updateStats();
+      if (currentStep === 1) {
+        document.getElementById('next-btn').disabled = selectedComponents.length === 0;
+      }
+    }
+
+    function toggleComponentVariants(componentId, evt) {
+      evt.stopPropagation();
+      
+      var component = null;
+      for (var i = 0; i < allComponents.length; i++) {
+        if (allComponents[i].id === componentId) {
+          component = allComponents[i];
+          break;
+        }
+      }
+      
+      if (!component || !component.isSet) return;
+      
+      if (expandedComponents[componentId]) {
+        delete expandedComponents[componentId];
+        var variantsContainer = document.getElementById('variants-' + componentId);
+        if (variantsContainer) {
+          variantsContainer.remove();
+        }
+      } else {
+        expandedComponents[componentId] = true;
+        loadVariants(componentId);
+      }
+    }
+
+    window.onmessage = function(event) {
+      var msg = event.data.pluginMessage;
+      console.log('UI recebeu mensagem:', msg.type);
+
+      if (msg.type === 'credentials-loaded') {
+        console.log('Credenciais carregadas:', Object.keys(msg.credentials || {}));
+        if (msg.credentials) {
+          if (msg.credentials.githubToken) document.getElementById('github-token').value = msg.credentials.githubToken;
+          if (msg.credentials.repoOwner) document.getElementById('repo-owner').value = msg.credentials.repoOwner;
+          if (msg.credentials.repoName) document.getElementById('repo-name').value = msg.credentials.repoName;
+          if (msg.credentials.vercelToken) document.getElementById('vercel-token').value = msg.credentials.vercelToken;
+          if (msg.credentials.anthropicKey) document.getElementById('anthropic-key').value = msg.credentials.anthropicKey;
+          if (msg.credentials.gaugeUrl) document.getElementById('gauge-url').value = msg.credentials.gaugeUrl;
+          if (msg.credentials.gaugeEmail) document.getElementById('gauge-email').value = msg.credentials.gaugeEmail;
+          if (msg.credentials.gaugeProjectId) document.getElementById('gauge-project-id').value = msg.credentials.gaugeProjectId;
+          if (msg.credentials.gaugeVersion) document.getElementById('gauge-version').value = msg.credentials.gaugeVersion;
+        }
+      }
+
+      if (msg.type === 'components-list') {
+        console.log('Componentes recebidos:', msg.components.length);
+        allComponents = msg.components;
+        renderComponentsGrouped(msg.components);
+        showLoading(false);
+        updateStats();
+      }
+
+      if (msg.type === 'variants-list') {
+        renderVariants(msg.componentId, msg.variants);
+      }
+
+      if (msg.type === 'workflow-started') {
+        workflowSteps = msg.steps;
+        renderWorkflowSteps(msg.steps);
+      }
+
+      if (msg.type === 'step-updated') {
+        updateWorkflowStep(msg.step);
+      }
+
+      if (msg.type === 'workflow-completed') {
+        document.getElementById('workflow-controls').style.display = 'none';
+        document.getElementById('workflow-result').classList.add('active');
+        document.getElementById('pr-link').href = msg.prUrl;
+        document.getElementById('vercel-link').href = msg.vercelUrl;
+      }
+
+      if (msg.type === 'workflow-error') {
+        alert('Erro no workflow: ' + msg.error);
+        document.getElementById('workflow-panel').classList.remove('active');
+      }
+
+      if (msg.type === 'workflow-paused') {
+        console.log('Workflow pausado');
+      }
+
+      if (msg.type === 'workflow-resumed') {
+        console.log('Workflow retomado');
+      }
+
+      if (msg.type === 'workflow-cancelled') {
+        alert('Workflow cancelado');
+        document.getElementById('workflow-panel').classList.remove('active');
+      }
+
+      if (msg.type === 'create-pr-request') {
+        createGitHubPR(msg.data);
+      }
+
+      if (msg.type === 'gauge-deploy-request') {
+        deployToGaugeBackend(msg.data);
+      }
+
+      if (msg.type === 'git-commit-request') {
+        gitCommitToGitHub(msg.data);
+      }
+
+      if (msg.type === 'create-pr-request') {
+        createGitHubPRReal(msg.data);
+      }
+
+      if (msg.type === 'vercel-deploy-request') {
+        deployToVercelReal(msg.data);
+      }
+    };
+
+    function renderWorkflowSteps(steps) {
+      var container = document.getElementById('workflow-steps');
+      container.innerHTML = '';
+
+      for (var i = 0; i < steps.length; i++) {
+        var step = steps[i];
+        var stepDiv = document.createElement('div');
+        stepDiv.className = 'workflow-step ' + step.status;
+        stepDiv.id = 'workflow-step-' + step.id;
+
+        var icon = '⏳';
+        if (step.status === 'running') icon = '⚙️';
+        if (step.status === 'success') icon = '✅';
+        if (step.status === 'error') icon = '❌';
+
+        stepDiv.innerHTML = '<div class="step-icon">' + icon + '</div><div class="step-info"><div class="step-title">' + step.name + '</div><div class="step-message">' + (step.message || 'Aguardando...') + '</div></div>';
+
+        container.appendChild(stepDiv);
+      }
+    }
+
+    function updateWorkflowStep(step) {
+      var stepDiv = document.getElementById('workflow-step-' + step.id);
+      if (!stepDiv) return;
+
+      stepDiv.className = 'workflow-step ' + step.status;
+
+      var icon = '⏳';
+      if (step.status === 'running') icon = '⚙️';
+      if (step.status === 'success') icon = '✅';
+      if (step.status === 'error') icon = '❌';
+
+      stepDiv.querySelector('.step-icon').textContent = icon;
+      if (step.message) {
+        stepDiv.querySelector('.step-message').textContent = step.message;
+      }
+    }
+
+    async function createGitHubPR(data) {
+      try {
+        var response = await fetch('https://api.github.com/repos/' + data.repoOwner + '/' + data.repoName + '/pulls', {
+          method: 'POST',
+          headers: {
+            'Authorization': 'token ' + data.githubToken,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            title: data.title,
+            body: data.body,
+            head: data.head,
+            base: data.base
+          })
+        });
+
+        var result = await response.json();
+        console.log('PR created:', result);
+      } catch (error) {
+        console.error('Error creating PR:', error);
+      }
+    }
+
+    function renderComponentsGrouped(components) {
+      componentGroups = {};
+      
+      for (var i = 0; i < components.length; i++) {
+        var comp = components[i];
+        var groupName = comp.pageName || 'Sem Página';
+        
+        if (!componentGroups[groupName]) {
+          componentGroups[groupName] = [];
+        }
+        componentGroups[groupName].push(comp);
+      }
+
+      var container = document.getElementById('components-container');
+      container.innerHTML = '';
+
+      if (components.length === 0) {
+        container.innerHTML = '<div class="empty-state"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/></svg><h3>Nenhum componente encontrado</h3><p>Para usar este plugin, você precisa ter componentes no arquivo Figma.</p><p><strong>Como criar componentes:</strong></p><ol style="text-align: left; margin: 16px auto; max-width: 300px;"><li>Selecione um frame ou elemento</li><li>Pressione Ctrl/Cmd + Alt + K</li><li>Ou use o menu: Create Component</li></ol></div>';
+        return;
+      }
+
+      var groupNames = Object.keys(componentGroups).sort();
+      
+      for (var g = 0; g < groupNames.length; g++) {
+        var pageName = groupNames[g];
+        var group = componentGroups[pageName];
+        
+        var groupDiv = document.createElement('div');
+        groupDiv.className = 'component-group';
+        
+        var groupHeader = document.createElement('div');
+        groupHeader.className = 'group-header';
+        
+        var groupContent = document.createElement('div');
+        groupContent.className = 'group-content';
+        groupContent.id = 'group-' + pageName.replace(/\s+/g, '-');
+        
+        groupHeader.onclick = (function(header, content) {
+          return function() {
+            header.classList.toggle('collapsed');
+            content.classList.toggle('collapsed');
+          };
+        })(groupHeader, groupContent);
+        
+        var selectAllBtn = document.createElement('button');
+        selectAllBtn.className = 'select-all-btn';
+        selectAllBtn.textContent = 'Selecionar todos';
+        selectAllBtn.onclick = (function(page) {
+          return function(e) {
+            e.stopPropagation();
+            selectAllInGroup(page);
+          };
+        })(pageName);
+        
+        groupHeader.innerHTML = '<div class="group-title"><span class="group-icon">▼</span>' + pageName + '</div><div class="group-actions"><span class="group-count">' + group.length + ' componente' + (group.length > 1 ? 's' : '') + '</span></div>';
+        groupHeader.querySelector('.group-actions').insertBefore(selectAllBtn, groupHeader.querySelector('.group-count'));
+        
+        groupDiv.appendChild(groupHeader);
+        groupDiv.appendChild(groupContent);
+        container.appendChild(groupDiv);
+        
+        for (var c = 0; c < group.length; c++) {
+          var comp = group[c];
+          var card = document.createElement('div');
+          card.className = 'component-card';
+          card.id = 'component-' + comp.id;
+          
+          if (comp.isSet) {
+            card.onclick = (function(id) {
+              return function(e) {
+                toggleComponentVariants(id, e);
+              };
+            })(comp.id);
+            card.style.cursor = 'pointer';
+          } else {
+            card.onclick = (function(id, cardEl) {
+              return function(e) {
+                cardEl.classList.toggle('selected');
+                toggleComponent(id, e);
+              };
+            })(comp.id, card);
+          }
+
+          var variantIndicator = comp.isSet ? 
+            '<div class="variant-indicator">▶ ' + comp.variantCount + ' variante' + (comp.variantCount > 1 ? 's' : '') + '</div>' : '';
+
+          card.innerHTML = '<div class="component-thumbnail"><img src="data:image/png;base64,' + arrayBufferToBase64(comp.thumbnail) + '" alt="' + comp.displayName + '"></div><div class="component-name">' + comp.displayName + '</div><div class="component-description">' + (comp.description || 'Sem descrição') + '</div>' + variantIndicator;
+
+          groupContent.appendChild(card);
+        }
+      }
+    }
+
+    function renderVariants(componentId, variants) {
+      var componentCard = document.getElementById('component-' + componentId);
+      if (!componentCard) return;
+      
+      var existingVariants = document.getElementById('variants-' + componentId);
+      if (existingVariants) {
+        existingVariants.remove();
+        return;
+      }
+      
+      var variantsContainer = document.createElement('div');
+      variantsContainer.id = 'variants-' + componentId;
+      variantsContainer.className = 'variants-container';
+      
+      for (var i = 0; i < variants.length; i++) {
+        var variant = variants[i];
+        var variantCard = document.createElement('div');
+        variantCard.className = 'variant-card';
+        
+        variantCard.onclick = (function(setId, varId, cardEl) {
+          return function(e) {
+            cardEl.classList.toggle('selected');
+            toggleVariantSelection(setId, varId, e);
+          };
+        })(componentId, variant.id, variantCard);
+        
+        variantCard.innerHTML = '<div class="component-thumbnail"><img src="data:image/png;base64,' + arrayBufferToBase64(variant.thumbnail) + '" alt="' + variant.name + '"></div><div class="component-name">' + variant.name + '</div>';
+        
+        variantsContainer.appendChild(variantCard);
+      }
+      
+      componentCard.appendChild(variantsContainer);
+      
+      var indicator = componentCard.querySelector('.variant-indicator');
+      if (indicator) {
+        indicator.innerHTML = '▼ ' + variants.length + ' variante' + (variants.length > 1 ? 's' : '');
+      }
+    }
+
+    function arrayBufferToBase64(buffer) {
+      var binary = '';
+      var bytes = new Uint8Array(buffer);
+      for (var i = 0; i < bytes.byteLength; i++) {
+        binary += String.fromCharCode(bytes[i]);
+      }
+      return window.btoa(binary);
+    }
+
+    async function deployToGaugeBackend(data) {
+      try {
+        var tokenResponse = await fetch(data.baseUrl + '/auth/token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: data.email,
+            name: data.email.split('@')[0]
+          })
+        });
+
+        if (!tokenResponse.ok) {
+          throw new Error('Gauge auth falhou');
+        }
+
+        var tokenData = await tokenResponse.json();
+        var token = tokenData.token;
+
+        var deployResponse = await fetch(data.baseUrl + '/projects/' + data.projectId + '/deploy', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-auth-token': token
+          },
+          body: JSON.stringify({
+            version: data.version,
+            set_default: true,
+            payload: data.payload
+          })
+        });
+
+        if (!deployResponse.ok) {
+          throw new Error('Gauge deploy falhou');
+        }
+
+        var result = await deployResponse.json();
+
+        parent.postMessage({
+          pluginMessage: {
+            type: 'gauge-deploy-response',
+            success: true,
+            result: result
+          }
+        }, '*');
+      } catch (error) {
+        parent.postMessage({
+          pluginMessage: {
+            type: 'gauge-deploy-response',
+            success: false,
+            error: error.message
+          }
+        }, '*');
+      }
+    }
+
+    async function gitCommitToGitHub(data) {
+      try {
+        console.log('Creating GitHub commit...', data.branchName);
+
+        // 1. Get default branch SHA
+        var refResponse = await fetch('https://api.github.com/repos/' + data.repoOwner + '/' + data.repoName + '/git/ref/heads/main', {
+          headers: {
+            'Authorization': 'token ' + data.githubToken,
+            'Accept': 'application/vnd.github.v3+json'
+          }
+        });
+
+        if (!refResponse.ok) {
+          throw new Error('Failed to get main branch reference');
+        }
+
+        var refData = await refResponse.json();
+        var mainSha = refData.object.sha;
+
+        // 2. Create new branch
+        var branchResponse = await fetch('https://api.github.com/repos/' + data.repoOwner + '/' + data.repoName + '/git/refs', {
+          method: 'POST',
+          headers: {
+            'Authorization': 'token ' + data.githubToken,
+            'Accept': 'application/vnd.github.v3+json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            ref: 'refs/heads/' + data.branchName,
+            sha: mainSha
+          })
+        });
+
+        if (!branchResponse.ok) {
+          throw new Error('Failed to create branch');
+        }
+
+        // 3. Create tree with files
+        var tree = [];
+        for (var i = 0; i < data.files.length; i++) {
+          var file = data.files[i];
+          tree.push({
+            path: file.path,
+            mode: '100644',
+            type: 'blob',
+            content: file.content
+          });
+        }
+
+        var treeResponse = await fetch('https://api.github.com/repos/' + data.repoOwner + '/' + data.repoName + '/git/trees', {
+          method: 'POST',
+          headers: {
+            'Authorization': 'token ' + data.githubToken,
+            'Accept': 'application/vnd.github.v3+json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            base_tree: mainSha,
+            tree: tree
+          })
+        });
+
+        if (!treeResponse.ok) {
+          throw new Error('Failed to create tree');
+        }
+
+        var treeData = await treeResponse.json();
+
+        // 4. Create commit
+        var commitResponse = await fetch('https://api.github.com/repos/' + data.repoOwner + '/' + data.repoName + '/git/commits', {
+          method: 'POST',
+          headers: {
+            'Authorization': 'token ' + data.githubToken,
+            'Accept': 'application/vnd.github.v3+json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            message: data.message,
+            tree: treeData.sha,
+            parents: [mainSha]
+          })
+        });
+
+        if (!commitResponse.ok) {
+          throw new Error('Failed to create commit');
+        }
+
+        var commitData = await commitResponse.json();
+
+        // 5. Update branch reference
+        var updateResponse = await fetch('https://api.github.com/repos/' + data.repoOwner + '/' + data.repoName + '/git/refs/heads/' + data.branchName, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': 'token ' + data.githubToken,
+            'Accept': 'application/vnd.github.v3+json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            sha: commitData.sha
+          })
+        });
+
+        if (!updateResponse.ok) {
+          throw new Error('Failed to update branch');
+        }
+
+        console.log('Commit created successfully:', commitData.sha);
+
+        parent.postMessage({
+          pluginMessage: {
+            type: 'git-commit-response',
+            success: true,
+            result: { sha: commitData.sha }
+          }
+        }, '*');
+      } catch (error) {
+        console.error('Git commit error:', error);
+        parent.postMessage({
+          pluginMessage: {
+            type: 'git-commit-response',
+            success: false,
+            error: error.message
+          }
+        }, '*');
+      }
+    }
+
+    async function createGitHubPRReal(data) {
+      try {
+        console.log('Creating GitHub PR...', data.head);
+
+        var prResponse = await fetch('https://api.github.com/repos/' + data.repoOwner + '/' + data.repoName + '/pulls', {
+          method: 'POST',
+          headers: {
+            'Authorization': 'token ' + data.githubToken,
+            'Accept': 'application/vnd.github.v3+json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            title: data.title,
+            body: data.body,
+            head: data.head,
+            base: data.base
+          })
+        });
+
+        if (!prResponse.ok) {
+          var errorData = await prResponse.json();
+          throw new Error(errorData.message || 'Failed to create PR');
+        }
+
+        var prData = await prResponse.json();
+        console.log('PR created successfully:', prData.html_url);
+
+        parent.postMessage({
+          pluginMessage: {
+            type: 'create-pr-response',
+            success: true,
+            result: prData
+          }
+        }, '*');
+      } catch (error) {
+        console.error('PR creation error:', error);
+        parent.postMessage({
+          pluginMessage: {
+            type: 'create-pr-response',
+            success: false,
+            error: error.message
+          }
+        }, '*');
+      }
+    }
+
+    async function deployToVercelReal(data) {
+      try {
+        console.log('Deploying to Vercel...', data.projectName);
+
+        // Create Vercel project if it doesn't exist
+        var projectResponse = await fetch('https://api.vercel.com/v9/projects', {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer ' + data.vercelToken,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            name: data.projectName,
+            framework: data.framework,
+            buildCommand: data.buildCommand,
+            outputDirectory: data.outputDirectory,
+            gitRepository: {
+              type: 'github',
+              repo: data.githubRepo
+            }
+          })
+        });
+
+        var projectData = await projectResponse.json();
+
+        if (!projectResponse.ok && projectData.error && projectData.error.code !== 'project_already_exists') {
+          throw new Error(projectData.error.message || 'Failed to create Vercel project');
+        }
+
+        console.log('Vercel project configured:', projectData);
+
+        parent.postMessage({
+          pluginMessage: {
+            type: 'vercel-deploy-response',
+            success: true,
+            result: { url: 'https://vercel.com/' + data.projectName }
+          }
+        }, '*');
+      } catch (error) {
+        console.error('Vercel deploy error:', error);
+        parent.postMessage({
+          pluginMessage: {
+            type: 'vercel-deploy-response',
+            success: false,
+            error: error.message
+          }
+        }, '*');
+      }
+    }
+  </script>
+</body>
+</html>
