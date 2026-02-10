@@ -1327,22 +1327,35 @@
 
     function startWorkflow() {
       document.getElementById('workflow-panel').classList.add('active');
-      
-      parent.postMessage({
-        pluginMessage: {
-          type: 'start-workflow',
-          components: selectedComponents,
-          githubToken: document.getElementById('github-token').value,
-          repoOwner: document.getElementById('repo-owner').value,
-          repoName: document.getElementById('repo-name').value,
-          vercelToken: document.getElementById('vercel-token').value,
-          anthropicApiKey: document.getElementById('anthropic-key').value,
-          gaugeUrl: document.getElementById('gauge-url').value || 'http://localhost:5174',
-          gaugeEmail: document.getElementById('gauge-email').value,
-          gaugeProjectId: document.getElementById('gauge-project-id').value,
-          gaugeVersion: document.getElementById('gauge-version').value
-        }
-      }, '*');
+
+      var config = {
+        type: 'start-workflow',
+        components: selectedComponents,
+        githubToken: document.getElementById('github-token').value,
+        repoOwner: document.getElementById('repo-owner').value,
+        repoName: document.getElementById('repo-name').value,
+        vercelToken: document.getElementById('vercel-token').value,
+        anthropicKey: document.getElementById('anthropic-key').value,
+        gaugeUrl: document.getElementById('gauge-url').value || 'http://localhost:5174',
+        gaugeEmail: document.getElementById('gauge-email').value,
+        gaugeProjectId: document.getElementById('gauge-project-id').value,
+        gaugeVersion: document.getElementById('gauge-version').value
+      };
+
+      console.log('Starting workflow with config:', {
+        githubToken: config.githubToken ? '***' : 'MISSING',
+        repoOwner: config.repoOwner || 'MISSING',
+        repoName: config.repoName || 'MISSING',
+        vercelToken: config.vercelToken ? '***' : 'MISSING',
+        anthropicKey: config.anthropicKey ? '***' : 'MISSING',
+        gaugeUrl: config.gaugeUrl,
+        gaugeEmail: config.gaugeEmail || 'MISSING',
+        gaugeProjectId: config.gaugeProjectId || 'MISSING',
+        gaugeVersion: config.gaugeVersion || 'auto',
+        componentsCount: selectedComponents.length
+      });
+
+      parent.postMessage({ pluginMessage: config }, '*');
     }
 
     function pauseWorkflow() {
@@ -1862,6 +1875,21 @@
 
     async function deployToGaugeBackend(data) {
       try {
+        console.log('Gauge deploy config:', {
+          baseUrl: data.baseUrl,
+          email: data.email || 'MISSING',
+          projectId: data.projectId || 'MISSING',
+          version: data.version
+        });
+
+        if (!data.projectId) {
+          throw new Error('Gauge Project ID is required. Please configure it in the settings.');
+        }
+
+        if (!data.email) {
+          throw new Error('Gauge Email is required. Please configure it in the settings.');
+        }
+
         var tokenResponse = await fetch(data.baseUrl + '/auth/token', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -1877,6 +1905,8 @@
 
         var tokenData = await tokenResponse.json();
         var token = tokenData.token;
+
+        console.log('Deploying to Gauge:', data.baseUrl + '/projects/' + data.projectId + '/deploy');
 
         var deployResponse = await fetch(data.baseUrl + '/projects/' + data.projectId + '/deploy', {
           method: 'POST',

@@ -328,8 +328,15 @@ async function createFileStructure(code, config) {
 }
 
 async function gitCommit(fileStructure, config) {
+  console.log('Git commit config:', {
+    hasToken: !!config.githubToken,
+    repoOwner: config.repoOwner || 'MISSING',
+    repoName: config.repoName || 'MISSING',
+    filesCount: fileStructure.files.length
+  });
+
   if (!config.githubToken || !config.repoOwner || !config.repoName) {
-    throw new Error('GitHub credentials missing');
+    throw new Error('GitHub credentials missing (token: ' + !!config.githubToken + ', owner: ' + (config.repoOwner || 'missing') + ', repo: ' + (config.repoName || 'missing') + ')');
   }
 
   var timestamp = Date.now();
@@ -377,13 +384,21 @@ async function gitCommit(fileStructure, config) {
 }
 
 async function createGitHubPR(commitResult, config) {
+  console.log('Creating PR with config:', {
+    hasToken: !!config.githubToken,
+    repoOwner: config.repoOwner || 'MISSING',
+    repoName: config.repoName || 'MISSING',
+    branch: commitResult.branch,
+    commit: commitResult.hash
+  });
+
   if (!config.githubToken || !config.repoOwner || !config.repoName) {
-    throw new Error('GitHub credentials missing');
+    throw new Error('GitHub credentials missing (token: ' + !!config.githubToken + ', owner: ' + (config.repoOwner || 'missing') + ', repo: ' + (config.repoName || 'missing') + ')');
   }
 
   var prData = {
     title: '🎨 Design System Update from Figma',
-    body: '## Automated PR created by Design System Publisher\n\n**Branch:** `' + commitResult.branch + '`\n**Files changed:** ' + commitResult.files.length + '\n**Commit:** ' + commitResult.hash + '\n\n### Components\n' + commitResult.files.map(function(f) { return '- `' + f.path + '`'; }).join('\n'),
+    body: '## Automated PR created by Design System Publisher\n\n**Branch:** `' + commitResult.branch + '`\n**Files changed:** ' + commitResult.files.length + '\n**Commit:** ' + commitResult.hash + '\n\n**Repository:** ' + config.repoOwner + '/' + config.repoName + '\n\n### Components\n' + commitResult.files.map(function(f) { return '- `' + f.path + '`'; }).join('\n'),
     head: commitResult.branch,
     base: 'main',
     githubToken: config.githubToken,
