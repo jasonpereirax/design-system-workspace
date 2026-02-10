@@ -1934,7 +1934,7 @@
         var refData = await refResponse.json();
         var mainSha = refData.object.sha;
 
-        // 2. Create new branch
+        // 2. Create new branch (or use existing)
         var branchResponse = await fetch('https://api.github.com/repos/' + data.repoOwner + '/' + data.repoName + '/git/refs', {
           method: 'POST',
           headers: {
@@ -1949,7 +1949,15 @@
         });
 
         if (!branchResponse.ok) {
-          throw new Error('Failed to create branch');
+          var branchError = await branchResponse.json();
+          // If branch already exists (422), check if we can use it
+          if (branchResponse.status === 422 && branchError.message && branchError.message.includes('already exists')) {
+            console.log('Branch already exists, will update it:', data.branchName);
+            // Branch exists, we'll update it later
+          } else {
+            console.error('Branch creation failed:', branchError);
+            throw new Error('Failed to create branch: ' + (branchError.message || 'Unknown error'));
+          }
         }
 
         // 3. Create tree with files
@@ -1978,7 +1986,9 @@
         });
 
         if (!treeResponse.ok) {
-          throw new Error('Failed to create tree');
+          var treeError = await treeResponse.json();
+          console.error('Tree creation failed:', treeError);
+          throw new Error('Failed to create tree: ' + (treeError.message || 'Unknown error'));
         }
 
         var treeData = await treeResponse.json();
@@ -1999,7 +2009,9 @@
         });
 
         if (!commitResponse.ok) {
-          throw new Error('Failed to create commit');
+          var commitError = await commitResponse.json();
+          console.error('Commit creation failed:', commitError);
+          throw new Error('Failed to create commit: ' + (commitError.message || 'Unknown error'));
         }
 
         var commitData = await commitResponse.json();
@@ -2018,7 +2030,9 @@
         });
 
         if (!updateResponse.ok) {
-          throw new Error('Failed to update branch');
+          var updateError = await updateResponse.json();
+          console.error('Branch update failed:', updateError);
+          throw new Error('Failed to update branch: ' + (updateError.message || 'Unknown error'));
         }
 
         console.log('Commit created successfully:', commitData.sha);
@@ -2046,6 +2060,21 @@
       try {
         console.log('Creating GitHub PR...', data.head);
 
+        // First, verify the branch exists
+        var branchCheckResponse = await fetch('https://api.github.com/repos/' + data.repoOwner + '/' + data.repoName + '/git/ref/heads/' + data.head, {
+          headers: {
+            'Authorization': 'token ' + data.githubToken,
+            'Accept': 'application/vnd.github.v3+json'
+          }
+        });
+
+        if (!branchCheckResponse.ok) {
+          console.error('Branch does not exist:', data.head);
+          throw new Error('Branch "' + data.head + '" does not exist. Cannot create PR.');
+        }
+
+        console.log('Branch verified:', data.head);
+
         var prResponse = await fetch('https://api.github.com/repos/' + data.repoOwner + '/' + data.repoName + '/pulls', {
           method: 'POST',
           headers: {
@@ -2063,7 +2092,20 @@
 
         if (!prResponse.ok) {
           var errorData = await prResponse.json();
-          throw new Error(errorData.message || 'Failed to create PR');
+          console.error('GitHub PR creation failed:', {
+            status: prResponse.status,
+            statusText: prResponse.statusText,
+            error: errorData
+          });
+
+          // Provide detailed error message
+          var errorMsg = 'Failed to create PR: ' + (errorData.message || 'Unknown error');
+          if (errorData.errors && errorData.errors.length > 0) {
+            errorMsg += ' - ' + errorData.errors.map(function(e) {
+              return e.message || JSON.stringify(e);
+            }).join(', ');
+          }
+          throw new Error(errorMsg);
         }
 
         var prData = await prResponse.json();
