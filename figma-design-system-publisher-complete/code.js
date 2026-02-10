@@ -242,8 +242,49 @@ async function callFigmaMCP(designData, config) {
 }
 
 async function generateCodeWithClaude(mcpData, config) {
+  if (!config.anthropicKey) {
+    console.log('Claude API key not provided, using templates...');
+    return generateCodeWithTemplates(mcpData);
+  }
+
+  console.log('Generating code with Claude API for', mcpData.designs.length, 'components...');
+
+  return new Promise(function(resolve, reject) {
+    figma.ui.postMessage({
+      type: 'claude-api-request',
+      data: {
+        anthropicKey: config.anthropicKey,
+        fileKey: mcpData.fileKey,
+        fileName: mcpData.fileName,
+        designs: mcpData.designs
+      }
+    });
+
+    var messageHandler = function(msg) {
+      if (msg.type === 'claude-api-response') {
+        figma.ui.off('message', messageHandler);
+        if (msg.success) {
+          resolve({ components: msg.result });
+        } else {
+          console.error('Claude API failed, falling back to templates:', msg.error);
+          resolve(generateCodeWithTemplates(mcpData));
+        }
+      }
+    };
+
+    figma.ui.on('message', messageHandler);
+
+    setTimeout(function() {
+      figma.ui.off('message', messageHandler);
+      console.log('Claude API timeout, falling back to templates');
+      resolve(generateCodeWithTemplates(mcpData));
+    }, 120000); // 2 minutes timeout for AI generation
+  });
+}
+
+function generateCodeWithTemplates(mcpData) {
   var components = [];
-  
+
   for (var i = 0; i < mcpData.designs.length; i++) {
     var design = mcpData.designs[i];
     components.push({

@@ -1652,6 +1652,10 @@
       if (msg.type === 'vercel-deploy-request') {
         deployToVercelReal(msg.data);
       }
+
+      if (msg.type === 'claude-api-request') {
+        callClaudeAPI(msg.data);
+      }
     };
 
     function renderWorkflowSteps(steps) {
@@ -2127,6 +2131,102 @@
         parent.postMessage({
           pluginMessage: {
             type: 'vercel-deploy-response',
+            success: false,
+            error: error.message
+          }
+        }, '*');
+      }
+    }
+
+    async function callClaudeAPI(data) {
+      try {
+        console.log('Calling Claude API to generate code for', data.designs.length, 'components...');
+
+        var components = [];
+
+        for (var i = 0; i < data.designs.length; i++) {
+          var design = data.designs[i];
+
+          // Create a detailed prompt for Claude
+          var prompt = 'Generate production-ready code for a React component based on this Figma design:\n\n';
+          prompt += 'Component Name: ' + design.name + '\n';
+          prompt += 'Dimensions: ' + design.bounds.width + 'x' + design.bounds.height + 'px\n';
+          prompt += 'Type: ' + design.type + '\n\n';
+          prompt += 'SVG Export:\n' + design.svgData + '\n\n';
+          prompt += 'Generate 4 code variants:\n';
+          prompt += '1. Clean HTML with semantic markup\n';
+          prompt += '2. TypeScript React component with proper types\n';
+          prompt += '3. React component using Tailwind CSS classes\n';
+          prompt += '4. CSS module with BEM methodology\n\n';
+          prompt += 'Return as JSON with keys: html, react, tailwind, css\n';
+          prompt += 'DO NOT use escape characters. Return clean, ready-to-use code.';
+
+          var response = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+              'x-api-key': data.anthropicKey,
+              'anthropic-version': '2023-06-01',
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              model: 'claude-sonnet-4-20250514',
+              max_tokens: 4096,
+              messages: [{
+                role: 'user',
+                content: prompt
+              }]
+            })
+          });
+
+          if (!response.ok) {
+            var errorData = await response.json();
+            throw new Error(errorData.error?.message || 'Claude API request failed');
+          }
+
+          var result = await response.json();
+          var content = result.content[0].text;
+
+          // Try to parse JSON response
+          var codeVariants;
+          try {
+            // Extract JSON from markdown code blocks if present
+            var jsonMatch = content.match(/```json\n([\s\S]*?)\n```/) || content.match(/```\n([\s\S]*?)\n```/) || [null, content];
+            codeVariants = JSON.parse(jsonMatch[1] || content);
+          } catch (e) {
+            console.error('Failed to parse Claude response as JSON, using raw content');
+            // Fallback: use basic structure
+            codeVariants = {
+              html: content,
+              react: content,
+              tailwind: content,
+              css: content
+            };
+          }
+
+          components.push({
+            name: design.name,
+            html: codeVariants.html || '',
+            react: codeVariants.react || '',
+            tailwind: codeVariants.tailwind || '',
+            css: codeVariants.css || ''
+          });
+
+          console.log('Generated code for:', design.name);
+        }
+
+        parent.postMessage({
+          pluginMessage: {
+            type: 'claude-api-response',
+            success: true,
+            result: components
+          }
+        }, '*');
+
+      } catch (error) {
+        console.error('Claude API error:', error);
+        parent.postMessage({
+          pluginMessage: {
+            type: 'claude-api-response',
             success: false,
             error: error.message
           }
