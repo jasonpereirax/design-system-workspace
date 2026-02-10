@@ -4,8 +4,6 @@ import styles from './Button.module.css'
 const imgAdd = "https://www.figma.com/api/mcp/asset/dc942d8a-aa9b-4c30-a289-43f0112c5fca"
 const imgAdd1 = "https://www.figma.com/api/mcp/asset/3a585fde-c14b-49c8-9997-d8c3ccbde95c"
 const imgRemove = "https://www.figma.com/api/mcp/asset/55373837-8d39-463e-aee7-281425b03e3d"
-const imgRemove1 = "https://www.figma.com/api/mcp/asset/a6339e7c-5714-4642-bdb9-e987fef278ab"
-const imgAdd2 = "https://www.figma.com/api/mcp/asset/92ce87ee-e7e7-4ea9-87ad-bd08847bd0ca"
 
 function AddIcon({ className }: { className?: string }) {
   return (
@@ -83,24 +81,17 @@ export default function Button({
   const isPriFocused = tipo === "Pri Focused"
   const isPriHover = tipo === "Pri Hover"
 
-  const isSecDefault = tipo === "Sec Default"
   const isSecDisabled = tipo === "Sec Disabled"
-  const isSecFocused = tipo === "Sec Focused"
   const isSecFocusedOrSecDefault = ["Sec Focused", "Sec Default"].includes(tipo)
   const isSecHover = tipo === "Sec Hover"
 
-  const isTerDefault = tipo === "Ter Default"
   const isTerDisabled = tipo === "Ter Disabled"
   const isTerDisabledOrTerFocusedOrTerDefault = ["Ter Disabled", "Ter Focused", "Ter Default"].includes(tipo)
-  const isTerFocused = tipo === "Ter Focused"
   const isTerHover = tipo === "Ter Hover"
 
-  const isTextBtnDefault = tipo === "Text btn Default"
   const isTextBtnDisabledOrTerDisabledOrTerFocusedOrTerDefaultOrSec = ["Text btn Disabled", "Ter Disabled", "Ter Focused", "Ter Default", "Sec Disabled"].includes(tipo)
   const isTextBtnDisabledOrTextBtnFocusedOrTextBtnHoverOrTextBtnDefault = ["Text btn Disabled", "Text btn Focused", "Text btn Hover", "Text btn Default", "Ter Disabled", "Ter Focused", "Ter Hover", "Ter Default", "Sec Disabled", "Sec Focused", "Sec Hover", "Sec Default", "Pri Disabled", "Pri Focused", "Pri Hover"].includes(tipo)
-  const isTextBtnFocused = tipo === "Text btn Focused"
   const isTextBtnFocusedOrTextBtnDefaultOrSecFocusedOrSecDefault = ["Text btn Focused", "Text btn Default", "Sec Focused", "Sec Default"].includes(tipo)
-  const isTextBtnHover = tipo === "Text btn Hover"
   const isTextBtnHoverOrSecHover = ["Text btn Hover", "Sec Hover"].includes(tipo)
 
   // Determine button classes
