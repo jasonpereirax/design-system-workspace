@@ -1,0 +1,39 @@
+:root {
+  /* Colors - Primary */
+  --color-primary-red: #fc3d55;
+  --color-secondary-dark-red: #c70160;
+
+  /* Colors - Neutral */
+  --color-neutral-white: #ffffff;
+  --color-neutral-medium-gray: #cccccc;
+  --color-neutral-dark-gray: #444444;
+
+  /* Spacing */
+  --spacing-8: 8px;
+  --spacing-16: 16px;
+  --spacing-24: 24px;
+  --spacing-40: 40px;
+
+  /* Border Radius */
+  --border-radius-pill: 800px;
+
+  /* Typography */
+  font-family: 'Avenir Next LT Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+}
+
+#root {
+  width: 100%;
+}
