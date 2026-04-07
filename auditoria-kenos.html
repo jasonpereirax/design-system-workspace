@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Figma Audit — Gauge × KÉNOS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root {
+  --cream:#faf9f6; --white:#ffffff; --ink:#1a1814; --ink2:#3d3b36;
+  --ink3:#7a7872; --ink4:#bbb8b0; --line:#e8e5de; --line2:#f0ede6;
+  --green:#1a7a52; --gl:#e8f4ee; --gm:#2ecc8a;
+  --amber:#a05000; --al:#fef3e4; --am:#f5a623;
+  --red:#b02a20; --rl:#fdecea; --rm:#e74c3c;
+  --blue:#1a4fa0; --bl:#eaf0fb; --bm:#4d9fff;
+  --purple:#5b3fa0; --pm:#8b6fd4; --pl:#ede9ff;
+  --sans:'Geist',sans-serif; --mono:'Geist Mono',monospace;
+  --r:8px; --rs:4px;
+  --sh:0 1px 3px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.04);
+  --sh-sm:0 1px 2px rgba(0,0,0,.05);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--cream);color:var(--ink);font-family:var(--sans);font-size:14px;-webkit-font-smoothing:antialiased}
+body{min-height:100vh}
+
+/* ── LAYOUT ── */
+.shell{display:flex;min-height:100vh}
+.sidebar{width:224px;min-height:100vh;background:var(--white);border-right:1px solid var(--line);flex-shrink:0;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
+.main{flex:1;min-width:0;overflow-x:hidden}
+
+/* ── SIDEBAR ── */
+.sb-brand{padding:22px 18px 18px;border-bottom:1px solid var(--line)}
+.sb-mark{width:30px;height:30px;background:var(--ink);border-radius:7px;display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+.sb-name{font-size:13px;font-weight:600;color:var(--ink);letter-spacing:-.01em}
+.sb-sub{font-size:11px;color:var(--ink3);margin-top:1px;font-family:var(--mono)}
+.sb-section{padding:14px 10px 6px}
+.sb-lbl{font-size:10px;font-weight:500;color:var(--ink4);text-transform:uppercase;letter-spacing:.09em;padding:0 8px 7px;font-family:var(--mono)}
+.nb{display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:var(--r);cursor:pointer;font-size:12px;font-weight:400;color:var(--ink2);border:none;background:none;width:100%;text-align:left;transition:all .12s;font-family:var(--sans)}
+.nb:hover{background:var(--line2);color:var(--ink)}
+.nb.active{background:var(--ink);color:var(--white)}
+.nb.active .ns{color:rgba(255,255,255,.5)}
+.nd{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.nl{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ns{font-family:var(--mono);font-size:11px;font-weight:500;margin-left:auto;flex-shrink:0}
+.sb-foot{margin-top:auto;padding:12px 10px;border-top:1px solid var(--line)}
+.sb-foot p{font-size:11px;color:var(--ink4);line-height:1.5;padding:8px 9px;background:var(--cream);border-radius:var(--r)}
+
+/* ── TOPBAR ── */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:20px 32px;background:var(--white);border-bottom:1px solid var(--line);gap:12px;flex-wrap:wrap}
+.tb-eye{font-size:10px;font-weight:500;color:var(--ink3);text-transform:uppercase;letter-spacing:.1em;font-family:var(--mono);margin-bottom:4px}
+.tb-title{font-size:20px;font-weight:600;color:var(--ink);letter-spacing:-.02em;line-height:1.2}
+.tb-sub{font-size:11px;color:var(--ink3);margin-top:3px;font-family:var(--mono)}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:20px;font-size:12px;font-weight:500;font-family:var(--mono)}
+.badge.good{background:var(--gl);color:var(--green);border:1px solid rgba(46,204,138,.2)}
+.badge.warn{background:var(--al);color:var(--amber);border:1px solid rgba(245,166,35,.2)}
+.badge.bad{background:var(--rl);color:var(--red);border:1px solid rgba(231,76,60,.2)}
+.bdot{width:6px;height:6px;border-radius:50%;background:currentColor}
+
+/* ── CONTENT ── */
+.content{padding:28px 32px}
+
+/* ── KPI ── */
+.krow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:12px}
+.kpi{background:var(--white);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;box-shadow:var(--sh-sm)}
+.kl{font-size:10px;font-weight:500;color:var(--ink3);text-transform:uppercase;letter-spacing:.09em;font-family:var(--mono);margin-bottom:8px}
+.kv{font-size:28px;font-weight:700;line-height:1;letter-spacing:-.02em;color:var(--ink)}
+.kv.good{color:var(--green)}.kv.warn{color:var(--amber)}.kv.bad{color:var(--red)}
+.ks{font-size:11px;color:var(--ink3);margin-top:6px;font-family:var(--mono)}
+
+/* ── GRIDS ── */
+.g2{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:12px;margin-bottom:12px}
+.g2e{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:12px}
+.g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:12px}
+.g4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:12px}
+
+/* ── CARD ── */
+.card{background:var(--white);border:1px solid var(--line);border-radius:var(--r);padding:20px 22px;box-shadow:var(--sh-sm)}
+.ct{font-size:10px;font-weight:500;color:var(--ink3);text-transform:uppercase;letter-spacing:.09em;font-family:var(--mono);margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--line2)}
+
+/* ── SCORE BARS ── */
+.sr{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.sn{font-size:12px;color:var(--ink2);width:150px;flex-shrink:0}
+.st{flex:1;height:4px;background:var(--line2);border-radius:2px;overflow:hidden}
+.sf{height:100%;border-radius:2px;transition:width .5s ease}
+.sv{font-family:var(--mono);font-size:12px;font-weight:500;width:28px;text-align:right}
+
+/* ── TABLE ── */
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{text-align:left;font-size:10px;font-weight:500;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em;font-family:var(--mono);padding:0 8px 10px;border-bottom:1px solid var(--line)}
+.tbl td{padding:10px 8px;border-bottom:1px solid var(--line2);font-size:12px;vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:var(--cream)}
+.tag{display:inline-flex;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:500;font-family:var(--mono)}
+.tm{background:#ede9ff;color:#5b3fa0}.td{background:var(--gl);color:var(--green)}.tt{background:var(--al);color:var(--amber)}
+.barcell{display:flex;align-items:center;gap:8px}
+.bct{flex:1;height:4px;background:var(--line2);border-radius:2px;overflow:hidden}
+.bcf{height:100%;border-radius:2px}
+.bcp{font-family:var(--mono);font-size:11px;width:32px}
+
+/* ── DONUT ── */
+.dwrap{position:relative;height:158px}
+.dcenter{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
+.dbig{font-size:26px;font-weight:700;letter-spacing:-.02em}
+.dlbl{font-size:10px;color:var(--ink3);font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+.legend{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px;font-size:11px;color:var(--ink2)}
+.li{display:flex;align-items:center;gap:5px}
+.lsq{width:8px;height:8px;border-radius:2px;display:inline-block}
+
+/* ── FINDINGS ── */
+.finding{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--line2);align-items:flex-start}
+.finding:last-child{border-bottom:none}
+.fbadge{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;margin-top:1px;font-family:var(--mono)}
+.fb{background:var(--rl);color:var(--red);border:1px solid rgba(231,76,60,.2)}
+.fw{background:var(--al);color:var(--amber);border:1px solid rgba(245,166,35,.2)}
+.fg{background:var(--gl);color:var(--green);border:1px solid rgba(46,204,138,.2)}
+.ft{font-size:12px;font-weight:500;color:var(--ink);margin-bottom:2px}
+.fd{font-size:11px;color:var(--ink3);line-height:1.5}
+
+/* ── PRIORITIES ── */
+.prio{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:var(--r);background:var(--cream);margin-bottom:5px;border:1px solid var(--line2)}
+.pn{font-family:var(--mono);font-size:10px;color:var(--ink4);width:14px;flex-shrink:0;padding-top:1px}
+.pt{font-size:11px;flex:1;line-height:1.5;color:var(--ink2)}
+.ptag{font-size:10px;font-weight:500;padding:2px 8px;border-radius:20px;white-space:nowrap;font-family:var(--mono);flex-shrink:0}
+.ptag.crit{background:var(--rl);color:var(--red);border:1px solid rgba(231,76,60,.2)}
+.ptag.high{background:var(--al);color:var(--amber);border:1px solid rgba(245,166,35,.2)}
+.ptag.med{background:var(--bl);color:var(--blue);border:1px solid rgba(77,159,255,.2)}
+
+/* ── SPARKS ── */
+.sprow{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.spname{font-size:11px;color:var(--ink2);width:115px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sptrack{flex:1;height:4px;background:var(--line2);border-radius:2px;overflow:hidden}
+.spfill{height:100%;border-radius:2px;background:var(--pm)}
+.spval{font-family:var(--mono);font-size:11px;color:var(--purple);width:26px;text-align:right}
+
+/* ── OFC (Overview file card) ── */
+.ofc{display:flex;align-items:center;gap:14px;padding:14px 18px;background:var(--white);border:1px solid var(--line);border-radius:var(--r);margin-bottom:8px;cursor:pointer;transition:all .14s;box-shadow:var(--sh-sm)}
+.ofc:hover{border-color:var(--ink4);box-shadow:var(--sh);transform:translateY(-1px)}
+.ofc-info{flex:1;min-width:0}
+.ofc-name{font-size:13px;font-weight:500;color:var(--ink);margin-bottom:2px}
+.ofc-meta{font-size:11px;color:var(--ink3);font-family:var(--mono)}
+.ofc-kpis{display:flex;gap:20px;flex-shrink:0}
+.ofc-k{text-align:center}
+.ofc-kv{font-size:18px;font-weight:700;letter-spacing:-.02em;line-height:1}
+.ofc-kl{font-size:9px;color:var(--ink3);font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+.ofc-arr{color:var(--ink4);flex-shrink:0}
+.notes{background:var(--cream);border-left:2px solid var(--line);padding:10px 12px;font-size:11px;color:var(--ink2);line-height:1.6;margin-top:12px;border-radius:0 var(--rs) var(--rs) 0}
+
+/* ── SECTION LABEL ── */
+.sec{font-size:10px;font-weight:500;color:var(--ink3);text-transform:uppercase;letter-spacing:.1em;font-family:var(--mono);margin:24px 0 12px}
+.divider{height:1px;background:var(--line);margin:24px 0}
+
+/* ── EXECUTIVE ELEMENTS ── */
+
+/* DS Maturity Score — big hero number */
+.maturity-hero{background:var(--white);border:1px solid var(--line);border-radius:var(--r);padding:28px 32px;box-shadow:var(--sh-sm);display:flex;align-items:center;gap:32px;margin-bottom:12px}
+.maturity-score{flex-shrink:0;text-align:center}
+.maturity-num{font-size:72px;font-weight:700;letter-spacing:-.04em;line-height:1}
+.maturity-lbl{font-size:11px;font-weight:500;color:var(--ink3);text-transform:uppercase;letter-spacing:.1em;font-family:var(--mono);margin-top:4px}
+.maturity-divider{width:1px;height:80px;background:var(--line);flex-shrink:0}
+.maturity-body{flex:1;min-width:0}
+.maturity-headline{font-size:16px;font-weight:600;color:var(--ink);letter-spacing:-.01em;margin-bottom:8px;line-height:1.35}
+.maturity-desc{font-size:13px;color:var(--ink2);line-height:1.65}
+.maturity-phases{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.phase-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:500;border:1px solid var(--line)}
+.ph1{background:var(--rl);color:var(--red);border-color:rgba(231,76,60,.2)}
+.ph2{background:var(--al);color:var(--amber);border-color:rgba(245,166,35,.2)}
+.ph3{background:var(--gl);color:var(--green);border-color:rgba(46,204,138,.2)}
+.phase-num{font-family:var(--mono);font-weight:700}
+
+/* Risk flags */
+.risk-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:12px}
+.risk-card{background:var(--white);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;box-shadow:var(--sh-sm);cursor:pointer;transition:all .13s}
+.risk-card:hover{transform:translateY(-1px);box-shadow:var(--sh)}
+.risk-flag{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:600;font-family:var(--mono);margin-bottom:10px}
+.rf-block{background:var(--rl);color:var(--red);border:1px solid rgba(231,76,60,.2)}
+.rf-risk{background:var(--al);color:var(--amber);border:1px solid rgba(245,166,35,.2)}
+.rf-ok{background:var(--gl);color:var(--green);border:1px solid rgba(46,204,138,.2)}
+.rf-wip{background:var(--pl);color:var(--purple);border:1px solid rgba(139,111,212,.2)}
+.risk-name{font-size:12px;font-weight:500;color:var(--ink);margin-bottom:4px}
+.risk-reason{font-size:11px;color:var(--ink3);line-height:1.45}
+.risk-score{font-family:var(--mono);font-size:20px;font-weight:700;letter-spacing:-.02em;margin-top:8px}
+
+/* Dependency map */
+.dep-map{background:var(--white);border:1px solid var(--line);border-radius:var(--r);padding:20px 22px;box-shadow:var(--sh-sm);margin-bottom:12px}
+.dep-row{display:flex;align-items:center;gap:0;margin-bottom:10px}
+.dep-row:last-child{margin-bottom:0}
+.dep-node{padding:8px 14px;border-radius:var(--r);font-size:12px;font-weight:500;white-space:nowrap;border:1px solid var(--line);background:var(--white)}
+.dep-arrow{flex:1;display:flex;align-items:center;padding:0 8px;color:var(--ink4);font-size:11px;font-family:var(--mono);gap:4px}
+.dep-arrow-line{flex:1;height:1px;background:var(--line)}
+.dep-label{font-size:10px;white-space:nowrap;color:var(--ink3)}
+.dep-nodes-col{display:flex;flex-direction:column;gap:6px}
+.dep-brace{font-size:24px;color:var(--line);padding:0 8px;line-height:1}
+
+/* Radar chart */
+.radar-wrap{position:relative;height:240px}
+
+/* Roadmap */
+.roadmap{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:12px}
+.rm-card{border-radius:var(--r);padding:16px 18px;border:1px solid}
+.rm1{background:#fff5f5;border-color:rgba(231,76,60,.15)}
+.rm2{background:#fffbf0;border-color:rgba(245,166,35,.15)}
+.rm3{background:#f0faf5;border-color:rgba(46,204,138,.15)}
+.rm-phase{font-size:10px;font-weight:600;font-family:var(--mono);text-transform:uppercase;letter-spacing:.09em;margin-bottom:6px}
+.rm1 .rm-phase{color:var(--red)}.rm2 .rm-phase{color:var(--amber)}.rm3 .rm-phase{color:var(--green)}
+.rm-title{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:4px}
+.rm-duration{font-size:11px;font-family:var(--mono);margin-bottom:10px}
+.rm1 .rm-duration{color:var(--red)}.rm2 .rm-duration{color:var(--amber)}.rm3 .rm-duration{color:var(--green)}
+.rm-item{display:flex;gap:7px;font-size:11px;color:var(--ink2);margin-bottom:5px;line-height:1.45}
+.rm-bullet{width:5px;height:5px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.rm1 .rm-bullet{background:var(--red)}.rm2 .rm-bullet{background:var(--amber)}.rm3 .rm-bullet{background:var(--green)}
+.rm-impact{margin-top:10px;padding:8px 10px;border-radius:var(--rs);font-size:11px;font-family:var(--mono);font-weight:500}
+.rm1 .rm-impact{background:rgba(231,76,60,.08);color:var(--red)}
+.rm2 .rm-impact{background:rgba(245,166,35,.08);color:var(--amber)}
+.rm3 .rm-impact{background:rgba(46,204,138,.08);color:var(--green)}
+
+/* Method tag */
+.mtag{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;font-size:10px;font-family:var(--mono);background:var(--cream);border:1px solid var(--line);color:var(--ink3);margin-bottom:16px}
+
+/* Debt card */
+.debt-card{background:var(--white);border:1px solid var(--line);border-radius:var(--r);padding:18px 20px;box-shadow:var(--sh-sm)}
+.debt-num{font-size:32px;font-weight:700;letter-spacing:-.03em;color:var(--ink);margin-bottom:2px}
+.debt-label{font-size:11px;color:var(--ink3);font-family:var(--mono)}
+.debt-est{margin-top:10px;padding:8px 10px;background:var(--al);border-radius:var(--rs);font-size:11px;color:var(--amber);font-family:var(--mono);font-weight:500}
+
+/* Tabs */
+.tabs{display:flex;gap:2px;background:var(--line2);padding:3px;border-radius:var(--r);margin-bottom:16px;width:fit-content}
+.tab{padding:6px 14px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--ink3);transition:all .13s;font-family:var(--sans)}
+.tab.active{background:var(--white);color:var(--ink);box-shadow:var(--sh-sm)}
+.tab-content{display:none}.tab-content.active{display:block}
+
+/* Tooltip-style insight box */
+.insight{background:var(--bl);border:1px solid rgba(77,159,255,.2);border-radius:var(--r);padding:12px 14px;font-size:12px;color:var(--blue);line-height:1.55;margin-bottom:12px}
+.insight strong{font-weight:600}
+
+/* ── CHART WRAP ── */
+.cw{position:relative;height:200px}
+.cwt{position:relative;height:230px}
+.cws{position:relative;height:260px}
+
+/* scrollbar */
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:var(--line);border-radius:2px}
+canvas{display:block}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sb-brand">
+    <div class="sb-mark">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <rect x="2" y="2" width="5" height="5" rx="1.5" fill="white"/>
+        <rect x="9" y="2" width="5" height="5" rx="1.5" fill="white" opacity=".55"/>
+        <rect x="2" y="9" width="5" height="5" rx="1.5" fill="white" opacity=".55"/>
+        <rect x="9" y="9" width="5" height="5" rx="1.5" fill="white" opacity=".25"/>
+      </svg>
+    </div>
+    <div class="sb-name">Figma Audit</div>
+    <div class="sb-sub">Gauge × KÉNOS DS</div>
+  </div>
+  <div class="sb-section">
+    <div class="sb-lbl">Visão executiva</div>
+    <button class="nb active" id="nav-exec" onclick="go('exec')">
+      <span class="nd" style="background:var(--bm)"></span>
+      <span class="nl">Overview executivo</span>
+    </button>
+    <button class="nb" id="nav-tech" onclick="go('tech')">
+      <span class="nd" style="background:var(--pm)"></span>
+      <span class="nl">Visão técnica</span>
+    </button>
+  </div>
+  <div class="sb-section">
+    <div class="sb-lbl">Por arquivo</div>
+    <div id="file-nav"></div>
+  </div>
+  <div class="sb-foot">
+    <p>Metodologia uniforme via Claude + Figma MCP em todos os 7 arquivos · Abril 2026</p>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main" id="main"></main>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════
+const FILES = [
+  {
+    id:'kenios-ui-kit',name:'KÉNOS UI & Template Kit',key:'45z9hjfHAhVU7rc4rHLFBP',auditedAt:'06/04/2026',
+    health:47,comps:78,vars:695,loose:1826,hardcoded:3835,
+    scores:{naming:75,tokens:0,meta:58,a11y:33,consist:100,coverage:0},
+    risk:'block', riskLabel:'Bloqueador de handoff',
+    riskReason:'Zero tokens, 68% da Web area solta. Não apto para entrega consistente.',
+    pages:[
+      {name:'Mobile Components',type:'mobile',componentized:72,styles:74,loose:281,hardcoded:2150},
+      {name:'Desktop Components',type:'desktop',componentized:68,styles:80,loose:165,hardcoded:600},
+      {name:'Start Screen',type:'template',componentized:42,styles:63,loose:36,hardcoded:88},
+      {name:'Onboarding',type:'template',componentized:34,styles:79,loose:198,hardcoded:172},
+      {name:'Settings',type:'template',componentized:49,styles:83,loose:90,hardcoded:156},
+      {name:'Reg. & Login',type:'template',componentized:67,styles:95,loose:69,hardcoded:125},
+      {name:'Web public [WIP]',type:'template',componentized:32,styles:73,loose:959,hardcoded:544},
+    ],
+    topComponents:[{name:'Button (mobile)',vars:72},{name:'Button [D]',vars:63},{name:'Tag',vars:42},{name:'InputFields',vars:29},{name:'Callout',vars:20},{name:'Tags [D]',vars:15},{name:'Circle Stepper',vars:15}],
+    findings:[
+      {type:'bad',title:'Zero tokens locais',desc:'Token Architecture 0/100. Nenhuma variável ou estilo local criado no arquivo.'},
+      {type:'bad',title:'Web public area crítica',desc:'959 nós soltos de 1.416 total (68%) e 544 valores hardcoded.'},
+      {type:'bad',title:'Onboarding não componentizado',desc:'Apenas 34% dos nós são instâncias — pior taxa dos templates.'},
+      {type:'warn',title:'Masters fora de lugar',desc:'4 componentes criados em página de Template, sem página dedicada.'},
+      {type:'warn',title:'Coverage zerada',desc:'Score 0/100. Sem descrições ou metadata nos componentes.'},
+      {type:'good',title:'Reg & Login é referência',desc:'95% de estilos vinculados — melhor página do arquivo.'},
+      {type:'good',title:'Consistência perfeita',desc:'Score de consistência 100/100.'},
+    ],
+    notes:'Arquivo de showcase que consome a biblioteca KÉNOS DS externamente. Todos os componentes Mobile/Desktop são instâncias de biblioteca externa. Apenas 4 masters criados localmente, todos em página de template.',
+  },
+  {
+    id:'kenios-mobile',name:'KÉNOS Mobile',key:'TkLkTNGvArV1dFnaGZNpey',auditedAt:'06/04/2026',
+    health:55,comps:219,vars:2051,loose:351,hardcoded:125,
+    scores:{naming:68,tokens:0,meta:70,a11y:67,consist:99,coverage:21},
+    risk:'risk', riskLabel:'Risco de inconsistência',
+    riskReason:'Sem tokens. Carousels e Slider comprometem qualidade da entrega mobile.',
+    pages:[
+      {name:'Accordion',type:'component',componentized:85,styles:67,loose:3,hardcoded:1},
+      {name:'Button Layouts',type:'component',componentized:53,styles:83,loose:8,hardcoded:1},
+      {name:'Card (planes)',type:'component',componentized:54,styles:11,loose:11,hardcoded:8},
+      {name:'Carousels',type:'component',componentized:5,styles:29,loose:80,hardcoded:41},
+      {name:'Input fields',type:'component',componentized:64,styles:75,loose:5,hardcoded:1},
+      {name:'Navigation bars',type:'component',componentized:75,styles:0,loose:1,hardcoded:1},
+      {name:'Selection calendar',type:'component',componentized:41,styles:99,loose:143,hardcoded:1},
+      {name:'Slider',type:'component',componentized:11,styles:15,loose:8,hardcoded:17},
+    ],
+    topComponents:[{name:'Button',vars:280},{name:'Callout-ButtonLink',vars:200},{name:'iOS/NavBar',vars:112},{name:'ButtonLayout',vars:98},{name:'Table',vars:96},{name:'InputFields',vars:88},{name:'PageBullets',vars:56}],
+    findings:[
+      {type:'bad',title:'Zero tokens/variáveis',desc:'Token Architecture 0/100. Biblioteca DS sem tokens vinculados.'},
+      {type:'bad',title:'Carousels com 5% componentizado',desc:'80 frames soltos — maior problema do arquivo.'},
+      {type:'bad',title:'Coverage baixa',desc:'Score 21/100. Maioria dos componentes sem descrições.'},
+      {type:'warn',title:'Slider problemático',desc:'11% de componentização, 15% de estilos vinculados.'},
+      {type:'good',title:'Consistência 99/100',desc:'Alta consistência interna entre componentes.'},
+      {type:'good',title:'55 páginas bem organizadas',desc:'Estrutura 1 componente/página facilita manutenção.'},
+    ],
+    notes:'Biblioteca principal mobile do KÉNOS DS. 55 páginas com 1 componente por página. Button tem 280 variantes — o maior do sistema.',
+  },
+  {
+    id:'kenios-desktop',name:'KÉNOS Desktop',key:'7TIvwShW5Dmj9NLjN5KV01',auditedAt:'06/04/2026',
+    health:67,comps:156,vars:1433,loose:378,hardcoded:46,
+    scores:{naming:75,tokens:36,meta:69,a11y:67,consist:100,coverage:56},
+    risk:'ok', riskLabel:'Mais maduro do sistema',
+    riskReason:'Health 67/100, único com tokens parciais. Referência para os demais.',
+    pages:[
+      {name:'Buttons',type:'component',componentized:100,styles:0,loose:0,hardcoded:0},
+      {name:'Callouts',type:'component',componentized:100,styles:0,loose:0,hardcoded:0},
+      {name:'Cards',type:'component',componentized:100,styles:0,loose:0,hardcoded:0},
+      {name:'Headers',type:'component',componentized:100,styles:0,loose:0,hardcoded:0},
+      {name:'Action sheets',type:'component',componentized:39,styles:87,loose:293,hardcoded:33},
+      {name:'Summary',type:'component',componentized:50,styles:93,loose:80,hardcoded:8},
+      {name:'Minicart',type:'component',componentized:67,styles:0,loose:1,hardcoded:1},
+      {name:'Carousels',type:'component',componentized:0,styles:0,loose:1,hardcoded:1},
+    ],
+    topComponents:[{name:'Button [D]',vars:276},{name:'Callout-ButtonLink [D]',vars:190},{name:'Table [D]',vars:96},{name:'InputFields [D]',vars:88},{name:'ButtonLayout [D]',vars:56},{name:'PageBullets [D]',vars:56},{name:'Tags [D]',vars:42}],
+    findings:[
+      {type:'bad',title:'Action sheets crítico',desc:'39% componentizado — 293 nós soltos.'},
+      {type:'warn',title:'Token architecture parcial',desc:'Score 36/100 — tokens existem mas estrutura incompleta.'},
+      {type:'warn',title:'Coverage 56/100',desc:'Quase metade dos componentes sem metadata adequado.'},
+      {type:'good',title:'Melhor arquivo do sistema',desc:'Health 67/100 — o mais maduro entre todos.'},
+      {type:'good',title:'Consistência perfeita',desc:'100/100. Consistência total entre componentes desktop.'},
+      {type:'good',title:'Múltiplas páginas 100%',desc:'Buttons, Callouts, Cards e Headers completamente componentizados.'},
+    ],
+    notes:'Espelho do Mobile com sufixo [D]. Melhor health score de todos (67/100). Único arquivo com alguma estrutura de tokens (36/100).',
+  },
+  {
+    id:'kenios-tokens',name:'Tokens Kénos',key:'eFZZ7CWOxjjYfTxCHgpo33',auditedAt:'06/04/2026',
+    health:66,comps:5,vars:0,loose:67,hardcoded:40,
+    scores:{naming:100,tokens:17,meta:83,a11y:67,consist:100,coverage:13},
+    risk:'risk', riskLabel:'Tokens inexistentes',
+    riskReason:'Apesar do nome, sem Figma Variables. Apenas estilos visuais estáticos.',
+    pages:[
+      {name:'Tokens Prominent',type:'component',componentized:50,styles:0,loose:1,hardcoded:1},
+      {name:'Tokens',type:'component',componentized:2,styles:37,loose:60,hardcoded:38},
+      {name:'Typekit',type:'component',componentized:77,styles:75,loose:6,hardcoded:1},
+    ],
+    topComponents:[],
+    findings:[
+      {type:'bad',title:'Zero variáveis Figma',desc:'Apesar do nome, sem variables collections — apenas 178 estilos locais.'},
+      {type:'bad',title:'Coverage 13/100',desc:'Documentação escassa para um arquivo de referência de tokens.'},
+      {type:'bad',title:'Página Tokens 98% hardcoded',desc:'60 nós soltos, 38 valores hardcoded na página principal.'},
+      {type:'warn',title:'Token architecture 17/100',desc:'Estrutura muito incipiente para suportar o DS.'},
+      {type:'good',title:'Naming 100/100',desc:'Nomenclatura perfeita — melhor score de naming de todos.'},
+      {type:'good',title:'178 estilos locais definidos',desc:'Paint e text styles existem e estão organizados.'},
+    ],
+    notes:'Arquivo de referência visual para cores e tipografia. Paradoxalmente, sem Figma Variables. Serve como documentação visual, não exporta tokens programáticos.',
+  },
+  {
+    id:'landing-components',name:'Landing Components',key:'REHpyYblotOjoYx6r9bQ2X',auditedAt:'06/04/2026',
+    health:46,comps:19,vars:179,loose:1,hardcoded:0,
+    scores:{naming:65,tokens:0,meta:67,a11y:33,consist:100,coverage:0},
+    risk:'risk', riskLabel:'Isolado do sistema',
+    riskReason:'19 componentes sem tokens, sem conexão formal com o DS. A11y crítica (33).',
+    pages:[
+      {name:'Value propositions',type:'component',componentized:0,styles:0,loose:0,hardcoded:0},
+      {name:'Cards',type:'component',componentized:0,styles:0,loose:0,hardcoded:0},
+      {name:'Secondary Hero',type:'component',componentized:50,styles:0,loose:1,hardcoded:0},
+    ],
+    topComponents:[{name:'Value prop block',vars:24},{name:'Mobile/Card 2',vars:24},{name:'Desktop/Card 2',vars:24},{name:'Internal-Hero',vars:17},{name:'Mobile VP block',vars:12},{name:'PointBulletsHero',vars:12},{name:'Fullbody Card',vars:8}],
+    findings:[
+      {type:'bad',title:'Zero tokens e coverage',desc:'Token Architecture 0/100 e Coverage 0/100.'},
+      {type:'bad',title:'Acessibilidade crítica',desc:'Score 33/100 — problema grave para landing pages públicas.'},
+      {type:'warn',title:'Naming 65/100',desc:'Nomenclatura inconsistente entre variantes mobile e desktop.'},
+      {type:'warn',title:'Arquivo isolado',desc:'19 componentes sem conexão formal com o DS principal.'},
+      {type:'good',title:'Consistência 100/100',desc:'Internamente consistente.'},
+      {type:'good',title:'Boa cobertura de layout',desc:'24 variantes por componente de valor-proposição.'},
+    ],
+    notes:'Componentes específicos para landing pages. Pequeno e isolado (19 comps, 179 variantes). Sem tokens ou ligação formal com KÉNOS.',
+  },
+  {
+    id:'kenios-icons',name:'KÉNOS Icons',key:'S5giOr0nZl1OiwYvj1AZVr',auditedAt:'06/04/2026',
+    health:47,comps:1236,vars:100,loose:172,hardcoded:56,
+    scores:{naming:75,tokens:0,meta:50,a11y:43,consist:98,coverage:13},
+    risk:'wip', riskLabel:'Em desenvolvimento',
+    riskReason:'1.136 ícones soltos (89%). Estrutura não finalizada para consumo pelo DS.',
+    pages:[
+      {name:'Icons',type:'component',componentized:11,styles:41,loose:172,hardcoded:56},
+      {name:'Others',type:'component',componentized:0,styles:0,loose:0,hardcoded:0},
+    ],
+    topComponents:[{name:'Social-media',vars:40},{name:'Marcas/celulares',vars:12},{name:'Streaming',vars:11},{name:'Brands/Logo',vars:9},{name:'Medios-pago',vars:7},{name:'Música',vars:5},{name:'Trabajo',vars:5}],
+    findings:[
+      {type:'bad',title:'1.136 ícones soltos',desc:'Página Icons com 11% componentizado — ícones não em component sets.'},
+      {type:'bad',title:'Zero tokens',desc:'Token Architecture 0/100.'},
+      {type:'bad',title:'Metadata 50/100',desc:'Metade dos componentes sem descrições.'},
+      {type:'warn',title:'Acessibilidade 43/100',desc:'Ícones sem labels de acessibilidade adequados.'},
+      {type:'good',title:'1.236 ícones disponíveis',desc:'Volume impressionante de ícones no sistema.'},
+      {type:'good',title:'Consistência 98/100',desc:'Alta consistência entre ícones.'},
+    ],
+    notes:'Maior biblioteca do sistema: 1.236 componentes únicos. Ícones individuais majoritariamente soltos (89%). Component sets são agrupamentos de marcas/logos.',
+  },
+  {
+    id:'kenios-web-modules',name:'KÉNOS Web Modules',key:'Mh9aR9o1LDcDtyIYsWyB70',auditedAt:'06/04/2026',
+    health:41,comps:7,vars:6,loose:676,hardcoded:38,
+    scores:{naming:80,tokens:0,meta:28,a11y:33,consist:95,coverage:0},
+    risk:'block', riskLabel:'Bloqueador de produção',
+    riskReason:'Cards com 473 nós soltos, Footer a 3%. Metadata 28/100, inapto para handoff.',
+    pages:[
+      {name:'Secondary Hero [WIP]',type:'template',componentized:83,styles:50,loose:24,hardcoded:10},
+      {name:'Breaker [WIP]',type:'template',componentized:76,styles:83,loose:8,hardcoded:1},
+      {name:'Boxed Breaker [WIP]',type:'template',componentized:71,styles:83,loose:10,hardcoded:1},
+      {name:'Carousel',type:'template',componentized:62,styles:56,loose:35,hardcoded:7},
+      {name:'Cards',type:'template',componentized:33,styles:100,loose:473,hardcoded:1},
+      {name:'Value Proposition',type:'template',componentized:81,styles:92,loose:14,hardcoded:1},
+      {name:'Checkout',type:'template',componentized:48,styles:100,loose:17,hardcoded:0},
+      {name:'Tariff & Pricing',type:'template',componentized:44,styles:94,loose:50,hardcoded:2},
+      {name:"FAQ's",type:'template',componentized:64,styles:100,loose:8,hardcoded:0},
+      {name:'Footer',type:'template',componentized:3,styles:93,loose:32,hardcoded:10},
+    ],
+    topComponents:[{name:'Oferta comercial',vars:4},{name:'Hero Promo',vars:2}],
+    findings:[
+      {type:'bad',title:'Cards com 473 nós soltos',desc:'33% componentizado e 473 frames soltos.'},
+      {type:'bad',title:'Footer praticamente vazio',desc:'3% de componentização — construído com shapes soltos.'},
+      {type:'bad',title:'Metadata 28/100',desc:'Score crítico — componentes sem documentação.'},
+      {type:'bad',title:'Zero tokens e coverage',desc:'Token Architecture 0/100 e Coverage 0/100.'},
+      {type:'warn',title:'Apenas 7 componentes masters',desc:'Dependência total de instâncias externas.'},
+      {type:'good',title:'Estilos bem usados',desc:'92–100% vinculados em Value Prop, Checkout, FAQ e Footer.'},
+    ],
+    notes:'Módulos web (seções de página) para montar landing pages. Cards e Footer são páginas mais críticas.',
+  },
+];
+
+// ═══════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════
+let charts={}, view='exec';
+const sc = v => v>=70?'#1a7a52':v>=40?'#a05000':'#b02a20';
+const hc = v => v>=70?'good':v>=45?'warn':'bad';
+const hl = v => v>=70?'Good':v>=45?'Poor':'Critical';
+const fmt = n => (n||0).toLocaleString('pt-BR');
+const avg = arr => Math.round(arr.reduce((a,v)=>a+v,0)/arr.length);
+
+function killCharts(){ Object.values(charts).forEach(c=>{try{c.destroy()}catch{}}); charts={}; }
+function go(id){ view=id; killCharts(); renderNav(); render(id); }
+
+function renderNav(){
+  ['exec','tech'].forEach(id=>{
+    const el=document.getElementById('nav-'+id);
+    if(el) el.className='nb'+(view===id?' active':'');
+  });
+  document.getElementById('file-nav').innerHTML=FILES.map(f=>`
+    <button class="nb ${view===f.id?'active':''}" onclick="go('${f.id}')">
+      <span class="nd" style="background:${sc(f.health)}"></span>
+      <span class="nl">${f.name}</span>
+      <span class="ns">${f.health}</span>
+    </button>`).join('');
+}
+
+function render(id){
+  const m=document.getElementById('main');
+  if(id==='exec') renderExec(m);
+  else if(id==='tech') renderTech(m);
+  else renderFile(m, FILES.find(f=>f.id===id));
+}
+
+// ═══════════════════════════════════════════
+// EXECUTIVE VIEW
+// ═══════════════════════════════════════════
+function renderExec(main){
+  const avgHealth = avg(FILES.map(f=>f.health));
+  const maturityScore = avgHealth; // DS maturity = avg health across all files
+  const totLoose = FILES.reduce((a,f)=>a+(f.loose||0),0);
+  const totHard = FILES.reduce((a,f)=>a+(f.hardcoded||0),0);
+  const totComps = FILES.reduce((a,f)=>a+(f.comps||0),0);
+  // Debt estimate: ~15min per loose node + ~5min per hardcoded value → hours
+  const debtHours = Math.round((totLoose*0.25 + totHard*0.08));
+  const debtDays = Math.round(debtHours/6);
+
+  const riskColors = {block:'#b02a20',risk:'#a05000',ok:'#1a7a52',wip:'#5b3fa0'};
+  const riskClass = {block:'rf-block',risk:'rf-risk',ok:'rf-ok',wip:'rf-wip'};
+  const riskLabels = {block:'Bloqueador',risk:'Atenção',ok:'Estável',wip:'Em dev.'};
+
+  main.innerHTML=`
+  <div class="topbar">
+    <div>
+      <div class="tb-eye">Visão executiva</div>
+      <div class="tb-title">KÉNOS Design System — diagnóstico</div>
+      <div class="tb-sub">Gauge × KÉNOS DS · 7 arquivos auditados · Abril 2026</div>
+    </div>
+    <div class="badge ${hc(maturityScore)}"><span class="bdot"></span>Maturidade ${maturityScore}/100 — ${hl(maturityScore)}</div>
+  </div>
+  <div class="content">
+
+    <!-- HERO: DS Maturity -->
+    <div class="maturity-hero">
+      <div class="maturity-score">
+        <div class="maturity-num" style="color:${sc(maturityScore)}">${maturityScore}</div>
+        <div class="maturity-lbl">DS maturity score</div>
+      </div>
+      <div class="maturity-divider"></div>
+      <div class="maturity-body">
+        <div class="maturity-headline">O KÉNOS DS tem boa consistência visual mas carece de infraestrutura técnica para escalar com segurança.</div>
+        <div class="maturity-desc">6 dos 7 arquivos não possuem tokens ou variáveis Figma, o que significa que qualquer mudança de cor, tipografia ou espaçamento precisa ser aplicada manualmente em cada componente. O sistema funciona como showcase mas não está pronto para handoff de produção em sua maioria.</div>
+        <div class="maturity-phases">
+          <span class="phase-pill ph1"><span class="phase-num">Fase 1</span> Tokens + componentização crítica</span>
+          <span class="phase-pill ph2"><span class="phase-num">Fase 2</span> Metadata + acessibilidade</span>
+          <span class="phase-pill ph3"><span class="phase-num">Fase 3</span> Coverage + publicação formal</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="krow">
+      <div class="kpi"><div class="kl">Arquivos auditados</div><div class="kv">${FILES.length}</div><div class="ks">metodologia uniforme</div></div>
+      <div class="kpi"><div class="kl">Componentes no sistema</div><div class="kv">${fmt(totComps)}</div><div class="ks">Mobile + Desktop + Icons</div></div>
+      <div class="kpi"><div class="kl">Dívida técnica estimada</div><div class="kv warn">${debtDays} dias</div><div class="ks">${fmt(totLoose)} nós + ${fmt(totHard)} hardcoded</div></div>
+      <div class="kpi"><div class="kl">Arquivos bloqueadores</div><div class="kv bad">${FILES.filter(f=>f.risk==='block').length}</div><div class="ks">não aptos para handoff</div></div>
+    </div>
+
+    <!-- INSIGHT -->
+    <div class="insight"><strong>Achado crítico transversal:</strong> 6 de 7 arquivos possuem Token Architecture abaixo de 20/100 — incluindo o arquivo chamado "Tokens Kénos". O KÉNOS Desktop é o único com tokens parcialmente estruturados (36/100) e serve como referência de qualidade para os demais.</div>
+
+    <!-- RISK FLAGS -->
+    <div class="sec">Status por arquivo — prontidão para produção</div>
+    <div class="risk-grid">
+      ${FILES.map(f=>`
+      <div class="risk-card" onclick="go('${f.id}')">
+        <div class="risk-flag ${riskClass[f.risk]}">${riskLabels[f.risk]}</div>
+        <div class="risk-name">${f.name}</div>
+        <div class="risk-reason">${f.riskReason}</div>
+        <div class="risk-score" style="color:${sc(f.health)}">${f.health}<span style="font-size:13px;font-weight:400;color:var(--ink3)">/100</span></div>
+      </div>`).join('')}
+    </div>
+
+    <!-- ROADMAP -->
+    <div class="sec">Roadmap de maturidade — impacto estimado no score</div>
+    <div class="roadmap">
+      <div class="rm-card rm1">
+        <div class="rm-phase">Fase 1 — Fundação</div>
+        <div class="rm-title">Tokens & componentização crítica</div>
+        <div class="rm-duration">3–4 semanas · 2 designers</div>
+        <div class="rm-item"><div class="rm-bullet"></div><span>Criar Figma Variables para cores, tipografia e espaçamento no KÉNOS Desktop (referência)</span></div>
+        <div class="rm-item"><div class="rm-bullet"></div><span>Propagar tokens para Mobile e Web Modules</span></div>
+        <div class="rm-item"><div class="rm-bullet"></div><span>Componentizar Cards e Footer do Web Modules (476 nós)</span></div>
+        <div class="rm-item"><div class="rm-bullet"></div><span>Corrigir Carousels e Slider no Mobile</span></div>
+        <div class="rm-impact">Score médio estimado: 52 → 65</div>
+      </div>
+      <div class="rm-card rm2">
+        <div class="rm-phase">Fase 2 — Qualidade</div>
+        <div class="rm-title">Metadata, naming & acessibilidade</div>
+        <div class="rm-duration">2–3 semanas · 1–2 designers</div>
+        <div class="rm-item"><div class="rm-bullet"></div><span>Adicionar descrições e props nos componentes sem metadata</span></div>
+        <div class="rm-item"><div class="rm-bullet"></div><span>Revisar contraste e labels de acessibilidade (A11y médio atual: 52)</span></div>
+        <div class="rm-item"><div class="rm-bullet"></div><span>Renomear frames genéricos no UI Kit e Web Modules</span></div>
+        <div class="rm-item"><div class="rm-bullet"></div><span>Conectar Landing Components ao DS principal</span></div>
+        <div class="rm-impact">Score médio estimado: 65 → 75</div>
+      </div>
+      <div class="rm-card rm3">
+        <div class="rm-phase">Fase 3 — Escala</div>
+        <div class="rm-title">Coverage, publicação & governança</div>
+        <div class="rm-duration">2 semanas · 1 designer</div>
+        <div class="rm-item"><div class="rm-bullet"></div><span>Documentar todos os componentes com guidelines de uso</span></div>
+        <div class="rm-item"><div class="rm-bullet"></div><span>Organizar ícones em component sets por categoria</span></div>
+        <div class="rm-item"><div class="rm-bullet"></div><span>Publicar bibliotecas com versionamento e changelog</span></div>
+        <div class="rm-item"><div class="rm-bullet"></div><span>Criar processo de auditoria recorrente</span></div>
+        <div class="rm-impact">Score médio estimado: 75 → 85+</div>
+      </div>
+    </div>
+
+    <!-- DEBT -->
+    <div class="sec">Dívida técnica de design — estimativa de esforço</div>
+    <div class="g4">
+      <div class="debt-card">
+        <div class="debt-num bad">${fmt(totLoose)}</div>
+        <div class="debt-label">nós soltos</div>
+        <div class="debt-est">~${Math.round(totLoose*0.25)}h para componentizar</div>
+      </div>
+      <div class="debt-card">
+        <div class="debt-num warn">${fmt(totHard)}</div>
+        <div class="debt-label">valores hardcoded</div>
+        <div class="debt-est">~${Math.round(totHard*0.08)}h para vincular a estilos</div>
+      </div>
+      <div class="debt-card">
+        <div class="debt-num" style="color:var(--purple)">${FILES.filter(f=>f.scores.tokens<20).length}/7</div>
+        <div class="debt-label">sem tokens</div>
+        <div class="debt-est">~40h para criar estrutura base</div>
+      </div>
+      <div class="debt-card">
+        <div class="debt-num bad">${debtDays}</div>
+        <div class="debt-label">dias de esforço total est.</div>
+        <div class="debt-est">base: 6h/dia · 2 designers</div>
+      </div>
+    </div>
+
+    <!-- DEPENDENCY MAP -->
+    <div class="sec">Mapa de dependências entre arquivos</div>
+    <div class="dep-map">
+      <div class="ct">Como os arquivos se relacionam — uma falha na base propaga para os consumidores</div>
+      <div style="display:flex;align-items:flex-start;gap:0">
+        <!-- col 1: bases -->
+        <div class="dep-nodes-col" style="flex-shrink:0">
+          <div class="dep-node" style="background:var(--gl);border-color:rgba(46,204,138,.3);color:var(--green)">KÉNOS Desktop</div>
+          <div class="dep-node" style="background:var(--bl);border-color:rgba(77,159,255,.3);color:var(--blue)">KÉNOS Mobile</div>
+          <div class="dep-node" style="background:var(--pl);border-color:rgba(139,111,212,.3);color:var(--purple)">KÉNOS Icons</div>
+          <div class="dep-node" style="background:var(--al);border-color:rgba(245,166,35,.3);color:var(--amber)">Tokens Kénos</div>
+        </div>
+        <!-- arrows -->
+        <div style="display:flex;flex-direction:column;justify-content:center;gap:20px;padding:10px 0">
+          ${['','','',''].map(()=>`<div style="display:flex;align-items:center;width:56px"><div style="flex:1;height:1px;background:var(--line)"></div><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1 5h8M5 1l4 4-4 4" stroke="var(--ink4)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`).join('')}
+        </div>
+        <!-- col 2: consumer -->
+        <div class="dep-nodes-col" style="flex-shrink:0;justify-content:center;margin:auto 0">
+          <div class="dep-node" style="font-size:13px;font-weight:600">KÉNOS UI & Template Kit</div>
+        </div>
+        <!-- arrow -->
+        <div style="display:flex;align-items:center;width:56px;margin:auto 0">
+          <div style="flex:1;height:1px;background:var(--line)"></div>
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1 5h8M5 1l4 4-4 4" stroke="var(--ink4)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <!-- col 3: outputs -->
+        <div class="dep-nodes-col" style="flex-shrink:0;gap:8px">
+          <div class="dep-node" style="font-size:11px">Web Modules</div>
+          <div class="dep-node" style="font-size:11px">Landing Components</div>
+        </div>
+      </div>
+      <div style="margin-top:14px;padding:10px 12px;background:var(--rl);border-radius:var(--rs);font-size:11px;color:var(--red)">
+        ⚠ Zero tokens no Tokens Kénos significa que mudanças de cor/tipografia precisam ser feitas manualmente em <strong>todos os 7 arquivos</strong>.
+      </div>
+    </div>
+
+  </div>`;
+}
+
+// ═══════════════════════════════════════════
+// TECHNICAL VIEW (all files comparison)
+// ═══════════════════════════════════════════
+function renderTech(main){
+  const dims=['naming','tokens','meta','a11y','consist','coverage'];
+  const dimLbls=['Naming','Token arch.','Metadata','Acessibilidade','Consistência','Coverage'];
+  const avgH = avg(FILES.map(f=>f.health));
+
+  main.innerHTML=`
+  <div class="topbar">
+    <div>
+      <div class="tb-eye">Visão técnica comparativa</div>
+      <div class="tb-title">Todos os arquivos — métricas consolidadas</div>
+      <div class="tb-sub">Health score · componentização · estilos · dimensões do DS</div>
+    </div>
+    <div class="badge ${hc(avgH)}"><span class="bdot"></span>Média ${avgH}/100</div>
+  </div>
+  <div class="content">
+    <div class="g2">
+      <div class="card">
+        <div class="ct">Health score por arquivo</div>
+        <div class="cwt"><canvas id="t-health"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="ct">Radar de dimensões — média geral</div>
+        <div class="cws"><canvas id="t-radar"></canvas></div>
+      </div>
+    </div>
+    <div class="g2e">
+      <div class="card">
+        <div class="ct">Componentização média por arquivo (%)</div>
+        <div class="cw"><canvas id="t-comp"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="ct">Estilos vinculados médios por arquivo (%)</div>
+        <div class="cw"><canvas id="t-style"></canvas></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ct">Scores por dimensão — todos os arquivos</div>
+      <div style="overflow-x:auto">
+        <table class="tbl">
+          <thead><tr>
+            <th>Arquivo</th>
+            ${dimLbls.map(l=>`<th style="text-align:center">${l}</th>`).join('')}
+            <th style="text-align:center">Health</th>
+          </tr></thead>
+          <tbody>
+            ${FILES.map(f=>`<tr style="cursor:pointer" onclick="go('${f.id}')">
+              <td style="font-weight:500">${f.name}</td>
+              ${dims.map(d=>`<td style="text-align:center"><span style="font-family:var(--mono);font-size:12px;font-weight:500;color:${sc(f.scores[d]||0)}">${f.scores[d]||0}</span></td>`).join('')}
+              <td style="text-align:center"><span class="badge ${hc(f.health)}" style="padding:3px 9px;font-size:11px">${f.health}</span></td>
+            </tr>`).join('')}
+            <tr style="background:var(--cream)">
+              <td style="font-weight:600;font-size:11px;font-family:var(--mono)">MÉDIA</td>
+              ${dims.map(d=>{const a=avg(FILES.map(f=>f.scores[d]||0));return`<td style="text-align:center"><span style="font-family:var(--mono);font-size:12px;font-weight:600;color:${sc(a)}">${a}</span></td>`}).join('')}
+              <td style="text-align:center"><span style="font-family:var(--mono);font-size:12px;font-weight:600;color:${sc(avgH)}">${avgH}</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="g2e" style="margin-top:12px">
+      <div class="card">
+        <div class="ct">Nós soltos por arquivo</div>
+        <div class="cwt"><canvas id="t-loose"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="ct">Valores hardcoded por arquivo</div>
+        <div class="cwt"><canvas id="t-hard"></canvas></div>
+      </div>
+    </div>
+  </div>`;
+
+  setTimeout(()=>{
+    const labels = FILES.map(f=>f.name.length>14?f.name.slice(0,12)+'…':f.name);
+    const tc='#7a7872', gc='#f0ede6';
+    const base = {responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}};
+    const scalesY = (max)=>({x:{ticks:{color:tc,font:{size:10}},grid:{display:false}},y:{min:0,max,ticks:{color:tc,font:{size:10,family:"'Geist Mono'"}},grid:{color:gc}}});
+    const scalesYH = {x:{ticks:{color:'#3d3b36',font:{size:10}},grid:{display:false}},y:{min:0,max:100,ticks:{color:tc,font:{size:10,family:"'Geist Mono'"},callback:v=>v},grid:{color:gc}}};
+
+    charts['t-health']=new Chart(document.getElementById('t-health'),{
+      type:'bar',data:{labels,datasets:[{data:FILES.map(f=>f.health),backgroundColor:FILES.map(f=>sc(f.health)+'22'),borderColor:FILES.map(f=>sc(f.health)),borderWidth:1.5,borderRadius:4,borderSkipped:false}]},
+      options:{...base,indexAxis:'y',scales:{x:{min:0,max:100,ticks:{color:tc,font:{size:10,family:"'Geist Mono'"},callback:v=>v},grid:{color:gc}},y:{ticks:{color:'#3d3b36',font:{size:11}},grid:{display:false}}},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.raw}/100`}}}}
+    });
+
+    const compD = FILES.map(f=>{const pp=f.pages||[];return pp.length?avg(pp.map(p=>p.componentized||0)):0;});
+    const styleD = FILES.map(f=>{const pp=f.pages||[];return pp.length?avg(pp.map(p=>p.styles||0)):0;});
+
+    charts['t-comp']=new Chart(document.getElementById('t-comp'),{type:'bar',data:{labels,datasets:[{data:compD,backgroundColor:'#8b6fd422',borderColor:'#8b6fd4',borderWidth:1.5,borderRadius:4,borderSkipped:false}]},options:{...base,scales:scalesY(100),plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.raw}%`}}}}});
+    charts['t-style']=new Chart(document.getElementById('t-style'),{type:'bar',data:{labels,datasets:[{data:styleD,backgroundColor:'#1a4fa022',borderColor:'#1a4fa0',borderWidth:1.5,borderRadius:4,borderSkipped:false}]},options:{...base,scales:scalesY(100),plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.raw}%`}}}}});
+
+    // Radar — avg por dimensão
+    const dims2=['naming','tokens','meta','a11y','consist','coverage'];
+    const dimLbls2=['Naming','Tokens','Metadata','A11y','Consist.','Coverage'];
+    const avgDims = dims2.map(d=>avg(FILES.map(f=>f.scores[d]||0)));
+    charts['t-radar']=new Chart(document.getElementById('t-radar'),{
+      type:'radar',
+      data:{labels:dimLbls2,datasets:[{data:avgDims,backgroundColor:'rgba(26,79,160,.08)',borderColor:'#1a4fa0',borderWidth:1.5,pointBackgroundColor:'#1a4fa0',pointRadius:4}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{r:{min:0,max:100,ticks:{display:false,stepSize:25},grid:{color:gc},pointLabels:{color:tc,font:{size:11,family:"'Geist'"}},angleLines:{color:gc}}}}
+    });
+
+    charts['t-loose']=new Chart(document.getElementById('t-loose'),{type:'bar',data:{labels,datasets:[{data:FILES.map(f=>f.loose||0),backgroundColor:'#b02a2015',borderColor:'#b02a20',borderWidth:1.5,borderRadius:4,borderSkipped:false}]},options:{...base,scales:scalesY(2000),plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${fmt(c.raw)} nós`}}}}});
+    charts['t-hard']=new Chart(document.getElementById('t-hard'),{type:'bar',data:{labels,datasets:[{data:FILES.map(f=>f.hardcoded||0),backgroundColor:'#a0500015',borderColor:'#a05000',borderWidth:1.5,borderRadius:4,borderSkipped:false}]},options:{...base,scales:scalesY(4500),plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${fmt(c.raw)} valores`}}}}});
+  },60);
+}
+
+// ═══════════════════════════════════════════
+// FILE VIEW (individual)
+// ═══════════════════════════════════════════
+function renderFile(main,f){
+  if(!f){main.innerHTML='';return;}
+  const pages=f.pages||[];
+  const avgComp=pages.length?avg(pages.map(p=>p.componentized||0)):0;
+  const avgStyle=pages.length?avg(pages.map(p=>p.styles||0)):0;
+  const bestPg=pages.length?[...pages].sort((a,b)=>(b.styles||0)-(a.styles||0))[0]:null;
+  const worstPg=pages.length?[...pages].sort((a,b)=>(a.componentized||0)-(b.componentized||0))[0]:null;
+  const top=f.topComponents||[];
+  const maxV=top.length?Math.max(...top.map(c=>c.vars)):1;
+  const prios=buildPrios(f);
+  const riskClass={block:'rf-block',risk:'rf-risk',ok:'rf-ok',wip:'rf-wip'};
+  const riskLabels={block:'Bloqueador',risk:'Atenção',ok:'Estável',wip:'Em dev.'};
+
+  main.innerHTML=`
+  <div class="topbar">
+    <div>
+      <div class="tb-eye">Relatório de arquivo</div>
+      <div class="tb-title">${f.name}</div>
+      <div class="tb-sub">${f.key} · ${f.auditedAt}</div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <span class="risk-flag ${riskClass[f.risk]}" style="margin:0">${riskLabels[f.risk]}</span>
+      <div class="badge ${hc(f.health)}"><span class="bdot"></span>${f.health}/100 — ${hl(f.health)}</div>
+    </div>
+  </div>
+  <div class="content">
+    <div class="mtag"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="4" stroke="currentColor" stroke-width="1.2"/><path d="M5 3v2L6.5 6.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>health score · componentização por página · estilos vs. hardcoded · top components · findings automáticos</div>
+
+    <div class="krow">
+      <div class="kpi"><div class="kl">Componentes únicos</div><div class="kv">${fmt(f.comps)}</div><div class="ks">sets + masters</div></div>
+      <div class="kpi"><div class="kl">Variações totais</div><div class="kv">${fmt(f.vars)}${f.vars>0?'+':''}</div><div class="ks">variantes em uso</div></div>
+      <div class="kpi"><div class="kl">Nós soltos</div><div class="kv bad">${fmt(f.loose)}</div><div class="ks">sem componentizar</div></div>
+      <div class="kpi"><div class="kl">Hardcoded</div><div class="kv bad">${fmt(f.hardcoded)}</div><div class="ks">sem estilo vinculado</div></div>
+    </div>
+    <div class="krow">
+      <div class="kpi"><div class="kl">Comp. médio</div><div class="kv ${hc(avgComp)}">${avgComp}%</div><div class="ks">por página</div></div>
+      <div class="kpi"><div class="kl">Estilos médio</div><div class="kv ${hc(avgStyle)}">${avgStyle}%</div><div class="ks">por página</div></div>
+      ${bestPg?`<div class="kpi"><div class="kl">Melhor página</div><div class="kv good">${bestPg.styles}%</div><div class="ks">${bestPg.name}</div></div>`:'<div class="kpi"></div>'}
+      ${worstPg?`<div class="kpi"><div class="kl">Pior página</div><div class="kv bad">${worstPg.componentized}%</div><div class="ks">${worstPg.name}</div></div>`:'<div class="kpi"></div>'}
+    </div>
+
+    <div class="g2">
+      <div class="card">
+        <div class="ct">Score de saúde — 6 dimensões</div>
+        ${[['Consistência interna',f.scores?.consist||0],['Naming e semântica',f.scores?.naming||0],['Metadata',f.scores?.meta||0],['Acessibilidade',f.scores?.a11y||0],['Token architecture',f.scores?.tokens||0],['Coverage',f.scores?.coverage||0]]
+          .map(([l,v])=>`<div class="sr"><span class="sn">${l}</span><div class="st"><div class="sf" style="width:${v}%;background:${sc(v)}"></div></div><span class="sv" style="color:${sc(v)}">${v}</span></div>`).join('')}
+      </div>
+      <div class="card">
+        <div class="ct">Componentização geral</div>
+        <div class="dwrap"><canvas id="f-donut"></canvas>
+          <div class="dcenter"><div class="dbig" style="color:${sc(avgComp)}">${avgComp}%</div><div class="dlbl">componentizados</div></div>
+        </div>
+        <div class="legend">
+          <span class="li"><span class="lsq" style="background:var(--gm)"></span>Componentizados</span>
+          <span class="li"><span class="lsq" style="background:var(--rm)"></span>Soltos</span>
+        </div>
+      </div>
+    </div>
+
+    ${pages.length?`
+    <div class="card">
+      <div class="ct">Por página — componentização e estilos</div>
+      <table class="tbl">
+        <thead><tr><th>Página</th><th>Tipo</th><th style="width:150px">Componentizados</th><th style="width:150px">Com estilo/variável</th><th style="text-align:right">Soltos</th><th style="text-align:right">Hardcoded</th></tr></thead>
+        <tbody>${pages.map(p=>{
+          const tc=p.type==='mobile'?'tm':p.type==='desktop'?'td':'tt';
+          const tl=p.type==='mobile'?'Mobile':p.type==='desktop'?'Desktop':'Template';
+          const cp=p.componentized||0,st=p.styles||0;
+          return`<tr><td style="font-weight:500">${p.name}</td><td><span class="tag ${tc}">${tl}</span></td>
+          <td><div class="barcell"><div class="bct"><div class="bcf" style="width:${cp}%;background:${sc(cp)}"></div></div><span class="bcp" style="color:${sc(cp)}">${cp}%</span></div></td>
+          <td><div class="barcell"><div class="bct"><div class="bcf" style="width:${st}%;background:var(--blue)"></div></div><span class="bcp" style="color:var(--blue)">${st}%</span></div></td>
+          <td style="text-align:right;font-family:var(--mono);color:var(--red)">${fmt(p.loose)}</td>
+          <td style="text-align:right;font-family:var(--mono);color:var(--amber)">${fmt(p.hardcoded)}</td></tr>`;
+        }).join('')}</tbody>
+      </table>
+    </div>`:''}
+
+    <div style="display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:12px;margin-bottom:12px">
+      <div class="card">
+        <div class="ct">Principais achados</div>
+        ${(f.findings||[]).map(fi=>`
+        <div class="finding">
+          <div class="fbadge ${fi.type==='bad'?'fb':fi.type==='warn'?'fw':'fg'}">${fi.type==='bad'?'!':fi.type==='warn'?'~':'✓'}</div>
+          <div><div class="ft">${fi.title}</div><div class="fd">${fi.desc}</div></div>
+        </div>`).join('')}
+        ${f.notes?`<div class="notes">${f.notes}</div>`:''}
+      </div>
+      <div class="card">
+        <div class="ct">${top.length?'Top componentes por variações':'Componentes'}</div>
+        ${top.length?top.map(c=>`<div class="sprow"><span class="spname">${c.name}</span><div class="sptrack"><div class="spfill" style="width:${Math.round(c.vars/maxV*100)}%"></div></div><span class="spval">${c.vars}</span></div>`).join('')
+        :'<p style="font-size:12px;color:var(--ink3)">Sem component sets com variantes.</p>'}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="ct">Plano de refactor — prioridades</div>
+      <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px">
+        ${prios.map((p,i)=>`<div class="prio"><span class="pn">${i+1}</span><span class="pt">${p.text}</span><span class="ptag ${p.level}">${p.level==='crit'?'Crítico':p.level==='high'?'Alto':'Médio'}</span></div>`).join('')}
+      </div>
+    </div>
+  </div>`;
+
+  setTimeout(()=>{
+    charts['f-donut']=new Chart(document.getElementById('f-donut'),{
+      type:'doughnut',
+      data:{datasets:[{data:[avgComp,100-avgComp],backgroundColor:['#2ecc8a','#e74c3c'],borderWidth:0,hoverOffset:3}]},
+      options:{responsive:true,maintainAspectRatio:false,cutout:'74%',plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataIndex===0?` ${c.raw}% componentizado`:` ${c.raw}% solto`}}}}
+    });
+  },60);
+}
+
+function buildPrios(f){
+  const p=[];
+  if((f.scores?.tokens||0)<20)p.push({text:'Criar variáveis Figma locais — cores, tipografia e espaçamento vinculados ao DS',level:'crit'});
+  if((f.loose||0)>300)p.push({text:`Componentizar ${fmt(f.loose)} nós soltos — priorizar páginas de template`,level:'crit'});
+  const worst=(f.pages||[]).sort((a,b)=>(a.componentized||0)-(b.componentized||0))[0];
+  if(worst&&(worst.componentized||0)<40)p.push({text:`Refatorar "${worst.name}" — ${worst.componentized}% componentizado (meta >70%)`,level:'crit'});
+  if((f.scores?.a11y||0)<50)p.push({text:'Auditoria de acessibilidade — contrastes, labels e navegação por teclado',level:'high'});
+  if((f.scores?.coverage||0)<30)p.push({text:'Adicionar descrições e metadata nos componentes sem anotação',level:'high'});
+  if((f.scores?.naming||0)<75)p.push({text:'Padronizar nomenclatura — renomear variantes e frames genéricos',level:'high'});
+  if((f.scores?.meta||0)<60)p.push({text:'Revisar metadata — props, variantes e links de documentação',level:'high'});
+  if((f.hardcoded||0)>200)p.push({text:`Substituir ${fmt(f.hardcoded)} valores hardcoded por estilos ou variáveis`,level:'med'});
+  if(!p.length)p.push({text:'Manter padrão e documentar boas práticas para referência do time',level:'med'});
+  return p.slice(0,8);
+}
+
+// ── INIT ──
+renderNav();
+render('exec');
+</script>
+</body>
+</html>
